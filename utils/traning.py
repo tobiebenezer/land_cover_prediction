@@ -82,5 +82,6 @@ def fit(epochs, lr, model, train_loader, val_loader=[], opt_func= torch.optim.SG
                 
             final_path = f"{final_path}/m_{datetime.now().strftime('%Y-%m-%d_%H:%M')}.pt"
             torch.save(model.state_dict(), final_path)
+            print(f'saved model at {final_path}')
             
             return history, model
