@@ -3,10 +3,11 @@ from torch.utils.data import Dataset, DataLoader
 import numpy as np
 import pandas as pd
 
+
 class NDVIDataset(Dataset):
     def __init__(self, data,cord, sequence_length = 10,img_size=(32,32),mode='train'):
 
-        self.grid_info = grid_info
+        self.grid_info = np.load('grid_info.npy')
         self.dates =  data.shape[0]
         self.img_size = img_size
         train_size = int(0.75 * self.dates)
