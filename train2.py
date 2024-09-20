@@ -14,7 +14,13 @@ device = (
     else "cpu"
 )
 
-model = NDVIModel(sequence_length=10,img_size=(32,32))
+sequence_length = 10
+num_channels = 100
+img_size = (32, 32)
+batch_size = 8
+
+cover_model = NDVIModel(sequence_length=sequence_length,num_channels = num_channels,img_size=img_size,lstm_hidden_size=128)
+cover_model.to(device)
 
 ndvi_3d = np.load('process_data.npy')
 data_cords = np.load('data_cords.npy')
