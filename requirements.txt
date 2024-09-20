@@ -1,0 +1,14 @@
+torch
+tqdm
+tempfile
+torchsummary
+gdown
+numpy
+sklearn
+PIL
+rasterio
+matplotlib
+seaborn
+geopandas
+shapely
+ee
