@@ -42,5 +42,5 @@ if __name__ == "__main__":
 
     history,cover_model = fit(EPOCHS, LR, cover_model, train_dataloader,val_dataloader)
     
-    np.save(f'history{datetime.now().strftime("%Y-%m-%d_%H:%M")}.npy', history)
-    np.save(f'cover_modelhistory{datetime.now().strftime("%Y-%m-%d_%H:%M")}.npy', cover_model)
+    np.save(f'history{datetime.now().strftime("%Y-%m-%d_%H:%M")}.npy', history,allow_pickle=True)
+    np.save(f'cover_modelhistory{datetime.now().strftime("%Y-%m-%d_%H:%M")}.npy', cover_model,allow_pickle=True)
