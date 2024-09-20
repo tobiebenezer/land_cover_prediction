@@ -3,7 +3,8 @@ from model.model_2 import NDVIModel
 from utils.traning import *
 from utils.process_data import get_data
 import pandas as pd
-import datetime
+import numpy as np
+from datetime import datetime
 
 
 device = (
