@@ -10,3 +10,4 @@ except:
 
 if __name__ == "__main__":
     os.system('gdown "https://drive.google.com/uc?id=1HBAAX9gX3uWyJjkxdfjLguphdFb5cEIF" -O ndvi_sequence_samples.csv' )
+    os.system('gdown "https://drive.google.com/uc?id=1HBAAX9gX3uWyJjkxdfjLguphdFb5cEIF" -O ndvi_sequence_samples.csv' )
