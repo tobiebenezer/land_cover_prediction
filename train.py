@@ -2,6 +2,7 @@ from model.data import NDVIDataset
 from model.ndvi_model import NDVIModel
 from utils.traning import *
 from utils.process_data import get_data
+from torch.utils.data import Dataset, DataLoader
 import pandas as pd
 
 
