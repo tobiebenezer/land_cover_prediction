@@ -10,16 +10,16 @@ class PatchDataset(Dataset):
         T, P, H, W = data.shape
         reshaped_data = data.reshape(T * P, H, W)
         self.img_size = img_size
-        train_size = int(0.75 * self.dates)
-        val_size = int(0.8 * self.dates)
+        train_size = int(0.75 * T * P)
+        val_size = int(0.8 * T * P)
 
         # Convert to numpy array
         if mode == 'train':
-            self.ndvi_values  = reshaped_data[:train_size]
+            self.ndvi_values  = reshaped_data[:train_size].reshape(train_size, *self.img_size)
         elif mode == "val":
-            self.ndvi_values  = reshaped_data[train_size:val_size]
+            self.ndvi_values  = reshaped_data[train_size:val_size].reshape(val_size - train_size, *self.img_size)
         else:
-            self.ndvi_values  = data[train_size:]
+            self.ndvi_values  = reshaped_data[train_size + val_size:].reshape(T * P - train_size+val_size, *self.img_size)
         
     def __len__(self):
         return len(self.ndvi_values)
