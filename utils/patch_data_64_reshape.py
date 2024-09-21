@@ -1,3 +1,6 @@
+import numpy as np
+import pandas as pd
+
 def get_patch_indices(s, b, patch_size=2):
     """
     Extract the 2x2 patch index from the unsord grid_id 
