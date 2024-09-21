@@ -24,10 +24,10 @@ ndvi_3d = np.load('64x64_patches.npy')
 
 class Scaler():
     def transform(self,x):
-        return x/1000
+        return x/10000
     
     def inverse_transform(self,x):
-        return x*1000
+        return x*10000
 
 
 if not os.path.exists('scaler.pkl'):
@@ -43,9 +43,9 @@ else:
 test_dataset = PatchDataset(ndvi_3d,mode="test",scaler=scaler)
 val_dataset = PatchDataset(ndvi_3d,mode="val",scaler=scaler)
 
-train_dataloader = DataLoader(train_dataset,batch_size=4, shuffle=False)
-val_dataloader = DataLoader(val_dataset,batch_size=4, shuffle=False)
-test_dataloader = DataLoader(test_dataset,batch_size=4, shuffle=False)
+train_dataloader = DataLoader(train_dataset,batch_size=64, shuffle=False)
+val_dataloader = DataLoader(val_dataset,batch_size=64, shuffle=False)
+test_dataloader = DataLoader(test_dataset,batch_size=64, shuffle=False)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='training')
@@ -58,6 +58,6 @@ if __name__ == "__main__":
 
     history,tokenizer = fit(EPOCHS, LR, tokenizer, train_dataloader,val_dataloader)
     
-    torch.save(model.state_dict(), f'cnn_tokenizer_weights{datetime.now().strftime("%Y-%m-%d_%H:%M")}.pth', f'decoder_weights{datetime.now().strftime("%Y-%m-%d_%H:%M")}.pth')
+    torch.save(tokenizer.state_dict(), f'cnn_tokenizer_weights{datetime.now().strftime("%Y-%m-%d_%H:%M")}.pth', f'decoder_weights{datetime.now().strftime("%Y-%m-%d_%H:%M")}.pth')
     tokenizer.save_weights(f'encoder_weights{datetime.now().strftime("%Y-%m-%d_%H:%M")}.pth', f'decoder_weights{datetime.now().strftime("%Y-%m-%d_%H:%M")}.pth')
     np.save(f'tokenizerhistory{datetime.now().strftime("%Y-%m-%d_%H:%M")}.npy', tokenizer,allow_pickle=True)
