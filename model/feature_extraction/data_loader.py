@@ -28,9 +28,9 @@ class PatchDataset(Dataset):
             self.ndvi_values = self.scaler.transform(self.ndvi_values)
             self.ndvi_values = self.ndvi_values.reshape(val_size - train_size, *self.img_size)
         else:  
-            self.ndvi_values = reshaped_data[train_size + val_size:].reshape(((T * P) - (train_size + val_size)), -1)
+            self.ndvi_values = reshaped_data[val_size:].reshape((T * P) - val_size, -1)
             self.ndvi_values = self.scaler.transform(self.ndvi_values)
-            self.ndvi_values = self.ndvi_values.reshape(((T * P) - (train_size + val_size)), *self.img_size)
+            self.ndvi_values = self.ndvi_values.reshape((T * P) - val_size, *self.img_size)
     
     def __len__(self):
         return len(self.ndvi_values)
