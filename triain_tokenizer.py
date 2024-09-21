@@ -30,7 +30,7 @@ val_dataloader = DataLoader(val_dataset,batch_size=25, shuffle=False)
 test_dataloader = DataLoader(test_dataset,batch_size=25, shuffle=False)
 
 if __name__ == "__main__":
-    EPOCHS = 1
+    EPOCHS = 50
     LR = 0.001
 
     history,tokenizer = fit(EPOCHS, LR, tokenizer, train_dataloader,val_dataloader)
