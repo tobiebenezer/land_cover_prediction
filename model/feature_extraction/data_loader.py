@@ -19,7 +19,7 @@ class PatchDataset(Dataset):
         elif mode == "val":
             self.ndvi_values  = reshaped_data[train_size:val_size].reshape(val_size - train_size, *self.img_size)
         else:
-            self.ndvi_values  = reshaped_data[train_size + val_size:].reshape(T * P - train_size+val_size, *self.img_size)
+            self.ndvi_values  = reshaped_data[train_size + val_size:].reshape(((T * P )- (train_size+val_size)), *self.img_size)
         
     def __len__(self):
         return len(self.ndvi_values)
