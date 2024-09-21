@@ -26,6 +26,6 @@ class PatchDataset(Dataset):
     
     def __getitem__(self,idx):
         x = torch.FloatTensor(self.ndvi_values[idx])
-        y = torch.FloatTensor(self.ndvi_values[idx])
+        y = torch.FloatTensor(self.ndvi_values[idx]).unsqueeze(1)
         
         return x,(y,[])

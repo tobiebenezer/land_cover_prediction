@@ -39,7 +39,7 @@ class CNNtokenizer(MBase):
             x = x.unsqueeze(1)  # Add channel dimension if not present
         elif len(x.shape) != 4:
             raise ValueError(f"Expected 3D or 4D input, got {len(x.shape)}D")
-        
+        print(x.shape)
         x = self.encoder(x)
         x = self.decoder(x)
         return x
