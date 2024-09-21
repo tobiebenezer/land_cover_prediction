@@ -22,6 +22,10 @@ tokenizer.to(device)
 
 ndvi_3d = np.load('64x64_patches.npy')
 
+class Scaler():
+    def transform(self,x):
+        return x/1000
+
 if not os.path.exists('scaler.pkl'):
     train_dataset = PatchDataset(ndvi_3d,mode="train")
     train_dataset.save_scaler('scaler.pkl')
@@ -29,7 +33,7 @@ if not os.path.exists('scaler.pkl'):
     
 else:
     # scaler = PatchDataset.load_scaler('scaler.pkl')
-    scaler = lambda x: x/1000
+    scaler = Scaler()
     train_dataset = PatchDataset(ndvi_3d,mode="train",scaler=scaler)
 
 test_dataset = PatchDataset(ndvi_3d,mode="test",scaler=scaler)
