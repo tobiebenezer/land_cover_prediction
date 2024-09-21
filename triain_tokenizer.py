@@ -17,7 +17,7 @@ device = (
     else "cpu"
 )
 
-tokenizer = CNNtokenizer()
+tokenizer = CNNtokenizer(dim=[(1,64), (64,64), (64,32)])
 tokenizer.to(device)
 
 ndvi_3d = np.load('64x64_patches.npy')
