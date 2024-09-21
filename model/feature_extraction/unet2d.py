@@ -5,7 +5,7 @@ from model.base import MBase
 
 
 class CNNtokenizer(MBase):  
-    def __init__(self, input_shape, dim=[(1,128), (128,128), (128,64), (64,64)], latent_dim=256):
+    def __init__(self, input_shape=(64,64), dim=[(1,128), (128,128), (128,64), (64,64)], latent_dim=256):
         super(CNNtokenizer, self).__init__()
         self.dim = dim
         self.latent_dim = latent_dim
@@ -14,7 +14,7 @@ class CNNtokenizer(MBase):
         encoder_layers = []
         for in_dim, out_dim in self.dim:
             encoder_layers.extend(self.center_in(in_dim, out_dim))
-            
+
         with torch.no_grad():
             dummy_input = torch.zeros(1, *input_shape)
             dummy_output = nn.Sequential(*encoder_layers)(dummy_input)
