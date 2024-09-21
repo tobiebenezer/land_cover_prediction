@@ -17,7 +17,7 @@ device = (
     else "cpu"
 )
 
-tokenizer = CNNtokenizer(dim=[(1,64), (64,64), (64,32), (32,32), (32,32)])
+tokenizer = CNNtokenizer(dim=[(1,64), (64,64), (64,32)])
 tokenizer.to(device)
 
 ndvi_3d = np.load('64x64_patches.npy')
@@ -32,16 +32,16 @@ if not os.path.exists('scaler.pkl'):
     scaler = train_dataset.scaler
     
 else:
-    # scaler = PatchDataset.load_scaler('scaler.pkl')
-    scaler = Scaler()
+    scaler = PatchDataset.load_scaler('scaler.pkl')
+    # scaler = Scaler()
     train_dataset = PatchDataset(ndvi_3d,mode="train",scaler=scaler)
 
 test_dataset = PatchDataset(ndvi_3d,mode="test",scaler=scaler)
 val_dataset = PatchDataset(ndvi_3d,mode="val",scaler=scaler)
 
-train_dataloader = DataLoader(train_dataset,batch_size=25, shuffle=False)
-val_dataloader = DataLoader(val_dataset,batch_size=25, shuffle=False)
-test_dataloader = DataLoader(test_dataset,batch_size=25, shuffle=False)
+train_dataloader = DataLoader(train_dataset,batch_size=16, shuffle=False)
+val_dataloader = DataLoader(val_dataset,batch_size=16, shuffle=False)
+test_dataloader = DataLoader(test_dataset,batch_size=16, shuffle=False)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='training')
