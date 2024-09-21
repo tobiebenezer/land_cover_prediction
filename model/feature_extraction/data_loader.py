@@ -5,7 +5,7 @@ import pandas as pd
 
 
 class PatchDataset(Dataset):
-    def __init__(self, data,img_size=(64,64),mode='train'):
+    def __init__(self, data,img_size=(64,64),mode='train', scaler=None):
 
         T, P, H, W = data.shape
         reshaped_data = data.reshape(T * P, H, W)
@@ -13,14 +13,22 @@ class PatchDataset(Dataset):
         train_size = int(0.75 * T * P)
         val_size = int(0.8 * T * P)
 
-        # Convert to numpy array
+        # Initialize or load the scaler
+        self.scaler = StandardScaler() if scaler is None else scaler
+      
         if mode == 'train':
-            self.ndvi_values  = reshaped_data[:train_size].reshape(train_size, *self.img_size)
+            self.ndvi_values = reshaped_data[:train_size]
+            self.ndvi_values = self.scaler.fit_transform(self.ndvi_values)
+            self.ndvi_values = self.ndvi_values.reshape(train_size, *self.img_size)
         elif mode == "val":
-            self.ndvi_values  = reshaped_data[train_size:val_size].reshape(val_size - train_size, *self.img_size)
-        else:
-            self.ndvi_values  = reshaped_data[train_size + val_size:].reshape(((T * P )- (train_size+val_size)), *self.img_size)
-        
+            self.ndvi_values = reshaped_data[train_size:val_size]
+            self.ndvi_values = self.scaler.transform(self.ndvi_values)
+            self.ndvi_values = self.ndvi_values.reshape(val_size - train_size, *self.img_size)
+        else:  
+            self.ndvi_values = reshaped_data[train_size + val_size:]
+            self.ndvi_values = self.scaler.transform(self.ndvi_values)
+            self.ndvi_values = self.ndvi_values.reshape(((T * P) - train_size + val_size), *self.img_size)
+    
     def __len__(self):
         return len(self.ndvi_values)
     

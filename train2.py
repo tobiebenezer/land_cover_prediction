@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 from torch.utils.data import Dataset, DataLoader
-
+import argparse
 
 device = (
     "cuda"
@@ -37,8 +37,14 @@ val_dataloader = DataLoader(val_dataset,batch_size=8, shuffle=False)
 test_dataloader = DataLoader(test_dataset,batch_size=8, shuffle=False)
 
 if __name__ == "__main__":
-    EPOCHS = 1
-    LR = 0.001
+    parser = argparse.ArgumentParser(description='training')
+    parser.add_argument('EPOCHS', type=int, help='number of epochs')
+    parser.add_argument('LR', type=float, help='learning rate')
+    args = parser.parse_args()
+
+    EPOCHS = args.EPOCHS if args.EPOCHS else 1
+    LR = args.LR if args.LR else 0.0001
+
 
     history,cover_model = fit(EPOCHS, LR, cover_model, train_dataloader,val_dataloader)
     
