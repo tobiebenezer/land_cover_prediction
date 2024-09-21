@@ -22,7 +22,7 @@ tokenizer = CNNtokenizer(dim = [
     (64, 64),  
     (64, 128),  
     (128, 128), 
-    # (128, 256), 
+    (128, 256), 
     # (256, 256), 
     # (256, 512), 
     # (512, 512),
@@ -55,9 +55,9 @@ else:
 test_dataset = PatchDataset(ndvi_3d,mode="test",scaler=scaler)
 val_dataset = PatchDataset(ndvi_3d,mode="val",scaler=scaler)
 
-train_dataloader = DataLoader(train_dataset,batch_size=25, shuffle=True)
-val_dataloader = DataLoader(val_dataset,batch_size=25, shuffle=True)
-test_dataloader = DataLoader(test_dataset,batch_size=25, shuffle=True)
+train_dataloader = DataLoader(train_dataset,batch_size=25, shuffle=True,num_workers=2)
+val_dataloader = DataLoader(val_dataset,batch_size=25, shuffle=True,num_workers=2)
+test_dataloader = DataLoader(test_dataset,batch_size=25, shuffle=True,num_workers=2)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='training')
