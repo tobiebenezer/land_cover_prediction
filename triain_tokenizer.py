@@ -26,6 +26,9 @@ class Scaler():
     def transform(self,x):
         return x/10000
     
+    def fit_transform(self,x):
+        return x/10000
+
     def inverse_transform(self,x):
         return x*10000
 
