@@ -22,9 +22,15 @@ tokenizer.to(device)
 
 ndvi_3d = np.load('64x64_patches.npy')
 
-train_dataset = PatchDataset(ndvi_3d,mode="train")
-test_dataset = PatchDataset(ndvi_3d,mode="test")
-val_dataset = PatchDataset(ndvi_3d,mode="val")
+if not os.path.exists('scaler.pkl'):
+    train_dataset = PatchDataset(ndvi_3d,mode="train")
+    train_dataset.save_scaler('scaler.pkl')
+else:
+    scaler = PatchDataset.load_scaler('scaler.pkl')
+    train_dataset = PatchDataset(ndvi_3d,mode="train",scaler=scaler)
+
+test_dataset = PatchDataset(ndvi_3d,mode="test",scaler=scaler)
+val_dataset = PatchDataset(ndvi_3d,mode="val",scaler=scaler)
 
 train_dataloader = DataLoader(train_dataset,batch_size=25, shuffle=False)
 val_dataloader = DataLoader(val_dataset,batch_size=25, shuffle=False)

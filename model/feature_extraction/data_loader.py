@@ -2,6 +2,9 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import StandardScaler
+import joblib
+
 
 
 class PatchDataset(Dataset):
@@ -37,3 +40,12 @@ class PatchDataset(Dataset):
         y = torch.FloatTensor(self.ndvi_values[idx]).unsqueeze(0)
         
         return x,(y,[])
+    
+    def save_scaler(self, path):
+        """Save the scaler to a file."""
+        joblib.dump(self.scaler, path)
+
+    @staticmethod
+    def load_scaler(path):
+        """Load the scaler from a file."""
+        return joblib.load(path)
