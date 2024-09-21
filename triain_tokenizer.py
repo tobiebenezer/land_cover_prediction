@@ -23,7 +23,7 @@ tokenizer.to(device)
 ndvi_3d = np.load('64x64_patches.npy')
 
 class Scaler():
-    def fit_transform(self,x):
+    def transform(self,x):
         return x/1000
 
 if not os.path.exists('scaler.pkl'):

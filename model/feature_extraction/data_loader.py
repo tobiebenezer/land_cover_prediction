@@ -21,7 +21,7 @@ class PatchDataset(Dataset):
       
         if mode == 'train':
             self.ndvi_values = reshaped_data[:train_size].reshape(train_size, -1)
-            self.ndvi_values = self.scaler.fit_transform(self.ndvi_values)
+            self.ndvi_values = self.scaler.transform(self.ndvi_values)
             self.ndvi_values = self.ndvi_values.reshape(train_size, *self.img_size)
         elif mode == "val":
             self.ndvi_values = reshaped_data[train_size:val_size].reshape(val_size - train_size, -1)
