@@ -25,6 +25,8 @@ ndvi_3d = np.load('64x64_patches.npy')
 if not os.path.exists('scaler.pkl'):
     train_dataset = PatchDataset(ndvi_3d,mode="train")
     train_dataset.save_scaler('scaler.pkl')
+    scaler = train_dataset.scaler
+    
 else:
     scaler = PatchDataset.load_scaler('scaler.pkl')
     train_dataset = PatchDataset(ndvi_3d,mode="train",scaler=scaler)
