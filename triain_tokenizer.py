@@ -17,7 +17,7 @@ device = (
     else "cpu"
 )
 
-tokenizer = CNNtokenizer(dim=[(1,64), (64,64), (64,32)])
+tokenizer = CNNtokenizer(dim=[(1,32), (32,32), (32,16)])
 tokenizer.to(device)
 
 ndvi_3d = np.load('64x64_patches.npy')
@@ -63,4 +63,4 @@ if __name__ == "__main__":
     
     torch.save(tokenizer.state_dict(), f'cnn_tokenizer_weights{datetime.now().strftime("%Y-%m-%d")}.pth')
     tokenizer.save_weights(f'encoder_weights{datetime.now().strftime("%Y-%m-%d")}.pth', f'decoder_weights{datetime.now().strftime("%Y-%m-%d")}.pth')
-    np.save(f'tokenizerhistory{datetime.now().strftime("%Y-%m-%d")}.npy', tokenizer,allow_pickle=True)
+    np.save(f'tokenizerhistory{datetime.now().strftime("%Y-%m-%d")}.npy', history,allow_pickle=True)
