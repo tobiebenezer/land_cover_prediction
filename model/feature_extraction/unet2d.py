@@ -28,7 +28,7 @@ class CNNtokenizer(MBase):
         self.decoder = nn.Sequential(*decoder_layers)
 
     def forward(self, x):
-        x = x.permute(1, 0, 2, 3)
+        print(x.shape)
         x = self.encoder(x)
         x = self.decoder(x)
         return x
