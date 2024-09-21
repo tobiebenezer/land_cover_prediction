@@ -28,7 +28,8 @@ if not os.path.exists('scaler.pkl'):
     scaler = train_dataset.scaler
     
 else:
-    scaler = PatchDataset.load_scaler('scaler.pkl')
+    # scaler = PatchDataset.load_scaler('scaler.pkl')
+    scaler = lambda x: x/1000
     train_dataset = PatchDataset(ndvi_3d,mode="train",scaler=scaler)
 
 test_dataset = PatchDataset(ndvi_3d,mode="test",scaler=scaler)
