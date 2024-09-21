@@ -43,9 +43,9 @@ else:
 test_dataset = PatchDataset(ndvi_3d,mode="test",scaler=scaler)
 val_dataset = PatchDataset(ndvi_3d,mode="val",scaler=scaler)
 
-train_dataloader = DataLoader(train_dataset,batch_size=4, shuffle=True)
-val_dataloader = DataLoader(val_dataset,batch_size=4, shuffle=True)
-test_dataloader = DataLoader(test_dataset,batch_size=4, shuffle=True)
+train_dataloader = DataLoader(train_dataset,batch_size=25, shuffle=True)
+val_dataloader = DataLoader(val_dataset,batch_size=25, shuffle=True)
+test_dataloader = DataLoader(test_dataset,batch_size=25, shuffle=True)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='training')
