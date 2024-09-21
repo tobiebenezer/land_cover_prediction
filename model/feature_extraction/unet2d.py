@@ -5,7 +5,7 @@ from model.base import MBase
 
 
 class CNNtokenizer(MBase):
-    def __init__(self, dim=[(64,128), (128,128), (128,64), (64,64)], latent_dim=256):
+    def __init__(self, dim=[(1,128), (128,128), (128,64), (64,64)], latent_dim=256):
         super(CNNtokenizer, self).__init__()
         self.dim = dim
         self.latent_dim = latent_dim
@@ -28,6 +28,7 @@ class CNNtokenizer(MBase):
         self.decoder = nn.Sequential(*decoder_layers)
 
     def forward(self, x):
+        x = x.view(x.size(0), 1, x.size(1), x.size(2))
         print(x.shape)
         x = self.encoder(x)
         x = self.decoder(x)
