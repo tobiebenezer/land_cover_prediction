@@ -16,7 +16,7 @@ class CNNtokenizer(MBase):
             encoder_layers.extend(self.center_in(in_dim, out_dim))
 
         with torch.no_grad():
-            dummy_input = torch.zeros(1, *input_shape)
+            dummy_input = torch.zeros(25,1, *input_shape)
             dummy_output = nn.Sequential(*encoder_layers)(dummy_input)
             flattened_size = dummy_output.numel() // dummy_output.size(0)
 
