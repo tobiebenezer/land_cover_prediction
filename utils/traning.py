@@ -80,7 +80,8 @@ def fit(epochs, lr, model, train_loader, val_loader=[], opt_func= torch.optim.SG
             if not os.path.isdir(final_path):
                 os.mkdir(final_path)
                 
-            final_path = f"{final_path}/m_{datetime.now().strftime('%Y-%m-%d_%H:%M')}.pt"
+            # final_path = f"{final_path}/m_{datetime.now().strftime('%Y-%m-%d_%H:%M')}.pt"
+            final_path = f"{final_path}/m_{datetime.now().strftime('%Y-%m-%d')}.pt"
             torch.save(model.state_dict(), final_path)
             print(f'saved model at {final_path}')
             
