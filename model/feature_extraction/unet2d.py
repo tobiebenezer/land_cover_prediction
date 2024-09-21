@@ -48,14 +48,16 @@ class CNNtokenizer(MBase):
         return [
             nn.Conv2d(in_dim, out_dim, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(out_dim),
-            nn.LeakyReLU(inplace=True),
+            # nn.LeakyReLU(inplace=True),
+            nn.ReLU(inplace=True),
         ]
 
     def center_inv_out(self, in_dim, out_dim):
         return [
             nn.Conv2d(in_dim, out_dim, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(out_dim),
-            nn.LeakyReLU(inplace=True),
+            nn.ReLU(inplace=True),
+            # nn.LeakyReLU(inplace=True),
             nn.ConvTranspose2d(out_dim, out_dim, kernel_size=3, stride=1, padding=1, output_padding=0),
         ]
 
