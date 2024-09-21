@@ -58,6 +58,6 @@ if __name__ == "__main__":
 
     history,tokenizer = fit(EPOCHS, LR, tokenizer, train_dataloader,val_dataloader)
     
-    torch.save(tokenizer.state_dict(), f'cnn_tokenizer_weights{datetime.now().strftime("%Y-%m-%d_%H:%M")}.pth', f'decoder_weights{datetime.now().strftime("%Y-%m-%d_%H:%M")}.pth')
+    torch.save(tokenizer.state_dict(), f'cnn_tokenizer_weights{datetime.now().strftime("%Y-%m-%d_%H:%M")}.pth')
     tokenizer.save_weights(f'encoder_weights{datetime.now().strftime("%Y-%m-%d_%H:%M")}.pth', f'decoder_weights{datetime.now().strftime("%Y-%m-%d_%H:%M")}.pth')
     np.save(f'tokenizerhistory{datetime.now().strftime("%Y-%m-%d_%H:%M")}.npy', tokenizer,allow_pickle=True)
