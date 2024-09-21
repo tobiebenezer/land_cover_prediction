@@ -2,6 +2,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from model.base import MBase
+import os
+import tempfile
+import shutil
+from datetime import datetime
+
 
 
 class CNNtokenizer(MBase):  
@@ -59,9 +64,42 @@ class CNNtokenizer(MBase):
             nn.ConvTranspose2d(out_dim, out_dim, kernel_size=3, stride=1, padding=1, output_padding=0),
         ]
 
+    # def save_weights(self, encoder_path, decoder_path):
+    #     torch.save(self.encoder.state_dict(), encoder_path)
+    #     torch.save(self.decoder.state_dict(), decoder_path)
     def save_weights(self, encoder_path, decoder_path):
-        torch.save(self.encoder.state_dict(), encoder_path)
-        torch.save(self.decoder.state_dict(), decoder_path)
+        def safe_save(state_dict, path):
+            try:
+                # First, try to save to a temporary file
+                with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+                    torch.save(state_dict, tmp_file.name)
+                
+                # If successful, move the temporary file to the desired location
+                shutil.move(tmp_file.name, path)
+                print(f"Successfully saved weights to {path}")
+            except Exception as e:
+                print(f"Error saving to {path}: {str(e)}")
+                
+                # Fallback: Try saving to the current directory with a timestamp
+                fallback_path = f"weights_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pth"
+                try:
+                    torch.save(state_dict, fallback_path)
+                    print(f"Saved weights to fallback location: {fallback_path}")
+                except Exception as e2:
+                    print(f"Failed to save weights to fallback location: {str(e2)}")
+                    
+                    # Last resort: Try saving to system's temporary directory
+                    temp_dir = tempfile.gettempdir()
+                    last_resort_path = os.path.join(temp_dir, f"weights_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pth")
+                    try:
+                        torch.save(state_dict, last_resort_path)
+                        print(f"Saved weights to temporary directory: {last_resort_path}")
+                    except Exception as e3:
+                        print(f"Failed to save weights to temporary directory: {str(e3)}")
+                        print("Unable to save weights. Please check your disk space and permissions.")
+
+    safe_save(self.encoder.state_dict(), encoder_path)
+    safe_save(self.decoder.state_dict(), decoder_path)
 
     def load_weights(self, encoder_path, decoder_path):
         self.encoder.load_state_dict(torch.load(encoder_path))
