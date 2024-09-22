@@ -25,7 +25,7 @@ tokenizer = CNNtokenizer(dim = [
     (128, 256), 
     (256, 256), 
     (256, 512), 
-    # (512, 512),
+    (512, 512),
 ])
 tokenizer.to(device)
 
@@ -33,13 +33,13 @@ ndvi_3d = np.load('64x64_patches.npy')
 
 class Scaler():
     def transform(self,x):
-        return x/1000
+        return x/10000
     
     def fit_transform(self,x):
-        return x/1000
+        return x/10000
 
     def inverse_transform(self,x):
-        return x*1000
+        return x*10000
 
 
 if not os.path.exists('scaler.pkl'):
