@@ -57,7 +57,8 @@ class Attention(nn.Module):
         attention = q_dot_k.softmax(dim=-1)
         out = einsum("b h i j, b h j d -> b h i d", attention, v)
         out = rearrange(out, "b h n d -> b n (h d)")
-        return self.to_out(out)
+        return self.to_out(out), attention
+
 
 class Reattention(nn.Module):
     def __init__(self, dim, heads=8, dim_head=64, dropout=0.):
@@ -234,7 +235,7 @@ class VariableSelectionNetwork(nn.Module):
 
         return combined, sparse_weights
 
-class PositionalEncoder(torch.nn.Module):
+class PositionalEncoder(nn.Module):
     def __init__(self, d_model, max_seq_len=160):
         super().__init__()
         assert d_model % 2 == 0, "model dimension has to be multiple of 2 (encode sin(pos) and cos(pos))"
@@ -261,6 +262,14 @@ class PositionalEncoder(torch.nn.Module):
         pe_slice = self.pe[:, :seq_len, :]
         x = x + rearrange(pe_slice, '1 seq_len d_model -> seq_len 1 d_model')
         return x
+
+class InterpretableMultiHeadAttention(nn.Module):
+    def __init__(self, num_attention_heads, hidden_size):
+        self.num_attention_heads = num_attention_heads
+        self.hidden_size = hidden_size
+
+    def forward(self, x):
+        return Attention(self.hidden_size, self.num_attention_heads)
 
 class PatchEmbedding(nn.Module):
     def __init__(self, img_size, patch_size, in_chans, embed_dim):
