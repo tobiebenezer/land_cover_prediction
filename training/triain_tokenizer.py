@@ -1,4 +1,4 @@
-from model.feature_extraction.data_loader import PatchDataset
+from data.feature_extraction.data_loader import PatchDataset
 from model.feature_extraction.unet2d import CNNtokenizer
 from utils.traning import *
 from utils.process_data import get_data

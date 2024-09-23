@@ -1,4 +1,4 @@
-from model.patch_data import NDVIDataset
+from data.patch_data import NDVIDataset
 from model.model_2 import NDVIModel
 from utils.traning import *
 from utils.process_data import get_data

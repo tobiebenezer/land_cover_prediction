@@ -12,3 +12,4 @@ seaborn
 geopandas
 shapely
 ee
+einops
