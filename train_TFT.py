@@ -1,4 +1,4 @@
-from data.feature_extraction.NDVIViTDataLoader import NDIVIViTDataloader
+from data.feature_extraction.NDVIViTDataloader import NDIVIViTDataloader
 from model.TemporalTransformer.NDVIViTEncoder import NDIViTEncoder
 from utils.traning import *
 from utils.process_data import get_data
