@@ -22,7 +22,7 @@ class NDIVIViTDataloader(Dataset):
             self.ndvi_values = self.scaler.fit_transform(self.ndvi_values)
             self.ndvi_values = rearrange(self.ndvi_values,"(T P) (H W) -> T P H W", T=tran_size, P=P, H=H, W=W)
         elif mode == "val":
-            self.ndvi_values = rearrange(data[train_size:val_size],"T P H W -> (T P) (H W)", T=[train_size:val_size].shape[0], P=P, H=H, W=W)
+            self.ndvi_values = rearrange(data[train_size:val_size],"T P H W -> (T P) (H W)", T=data[train_size:val_size].shape[0], P=P, H=H, W=W)
             self.ndvi_values = self.scaler.transform(self.ndvi_values)
             self.ndvi_values = rearrange(self.ndvi_values,"(T P) (H W) -> T P H W", T=data[train_size:val_size].shape[0], P=P, H=H, W=W)
         else:  
