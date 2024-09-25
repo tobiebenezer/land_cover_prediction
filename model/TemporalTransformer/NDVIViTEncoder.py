@@ -2,7 +2,7 @@ import torch
 from torch import nn, einsum
 from einops import rearrange
 from einops.layers.torch import Rearrange
-from model.TempralTransformer.module import *
+from model.TemporalTransformer.module import *
 from model.base import MBase
 
 
