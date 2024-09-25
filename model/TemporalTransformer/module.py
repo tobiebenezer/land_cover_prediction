@@ -126,7 +126,7 @@ class TemporalLayer(nn.Module):
         return x
 
 class GatedResidualNetwork(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size, dropout=0., context_size=None, is_temporal=True):
+    def __init__(self, input_size, hidden_size, output_size, dropout=0., context_size=None, is_temporal=False):
         super(GateResidualNetwork, self).__init__()
 
         self.input_size = input_size
@@ -192,48 +192,7 @@ class GatedResidualNetwork(nn.Module):
 
         return x
 
-class VariableSelectionNetwork(nn.Module):
-    def __init__(self, input_size, output_size, hidden_size, dropout, context_size=None, is_temporal=True):
-        super(VariableSelectionNetwork, self).__init__()
-        
-        self.hidden_size = hidden_size
-        self.input_size = input_size
-        self.output_size = output_sze
-        self.dropout = dropout
-        self.context_size = context_size
-        self.is_temp = is_temp
 
-        self.flattened_inputs = GatedRedsidualNetwork(self.output_size*self.input_size, 
-                                                     self.hidden_size, self.output_size, 
-                                                     self.dropout, self.context_size, 
-                                                     self.is_temp)
-
-        self.transformer_inputs = nn.ModuleList([
-            GatedResidualNetwork(
-                self.input_size, self.hidden_size, self.dropout,
-                self.context_size, self.is_temp) for _ in range(self.output_size)
-        ])
-
-        self.softMax = nn.Softmax(dim=-1)
-
-    def forword(self, embedding, context=None):
-        # Generation of variable selection weights
-        sparse_weights = self.flattened_inputs(embedding, context)
-        if self.is_temporal:
-            sparse_weights = self.softmax(sparse_weights).unsqueeze(2)
-        else:
-            sparse_weights = self.softmax(sparse_weights).unsqueeze(1)
-
-        # Additional non-linear processing for each feature vector
-        transformed_embeddings = torch.stack(
-            [self.transformed_inputs[i](embedding[
-                Ellipsis, i*self.input_size:(i+1)*self.input_size]) for i in range(self.output_size)], axis=-1)
-
-        # Processed features are weighted by their corresponding weights and combined
-        combined = transformed_embeddings*sparse_weights
-        combined = combined.sum(axis=-1)
-
-        return combined, sparse_weights
 
 class PositionalEncoder(nn.Module):
     def __init__(self, d_model, max_seq_len=160):
@@ -263,6 +222,24 @@ class PositionalEncoder(nn.Module):
         x = x + rearrange(pe_slice, '1 seq_len d_model -> seq_len 1 d_model')
         return x
 
+class Transformer(nn.Module):
+    def __init__(self,dim,depth=1, num_head=8, mlp_ratio=4.0, qkv_bias=False, drop=0., attn_drop=0.):
+        super().__init__()
+        self.layers = nn.ModuleList([])
+        self.norm = nn.LayerNorm(dim)
+
+        for _ in range(depth):
+            self.layers.append(nn.ModuleList([
+                PreNorm(dim, Attention(dim, heads=num_heads, dropout=drop)),
+                PreNorm(dim, FeedForward(dim, int(dim * mlp_ratio), dropout=drop)),
+            ]))
+
+    def forward(self, x):
+        for attn, mlp in self.layers:
+            x = x + self.attn(x)
+            x = x + self.mlp(x)
+        return self.norm(x)
+
 class InterpretableMultiHeadAttention(nn.Module):
     def __init__(self, num_attention_heads, hidden_size):
         self.num_attention_heads = num_attention_heads
@@ -272,6 +249,24 @@ class InterpretableMultiHeadAttention(nn.Module):
         return Attention(self.hidden_size, self.num_attention_heads)
 
 class PatchEmbedding(nn.Module):
-    def __init__(self, img_size, patch_size, in_chans, embed_dim):
+    def __init__(self, img_size=32, patch_size=3, in_chans=1, embed_dim=128):
         super().__init__()
+        self.image_size = img_size
+        self.patch_size = patch_size
+        self.proj = nn.Sequential(
+            nn.Conv2d(in_chans, 64, kernel_size=patch_size, stride=patch_size)
+            nn.Conv2d(64, embed_dim, kernel_size=patch_size, stride=patch_size)
+            )
+
+    def forward(self, x):
+        x = self.proj(x)
+        x = rearrange(x, 'b c h w -> b (h w) c')
+        return x
+
+
+
+
+
+
+
 
