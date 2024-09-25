@@ -11,8 +11,8 @@ class NDIVIViTDataloader(Dataset):
 
         T, P, H, W = data.shape
         self.img_size = img_size
-        train_size = int(0.75 * T * P)
-        val_size = int(0.8 * T * P)
+        train_size = int(0.75 * T )
+        val_size = int(0.8 * T )
         print()
         # Initialize or load the scaler
         self.scaler = StandardScaler() if scaler is None else scaler
