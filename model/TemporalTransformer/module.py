@@ -37,7 +37,7 @@ class Attention(nn.Module):
     def __init__(self, dim, heads=8, dim_head=64, dropout=0.):
         super(Attention, self).__init__()
         internal_dim = dim_head * heads
-        is_projected =  not (head == 1 and dim_head == dim)
+        is_projected =  not (heads == 1 and dim_head == dim)
         
         self.heads = heads
         self.scale = dim_head ** (-0.5) # sqrt of num of head
