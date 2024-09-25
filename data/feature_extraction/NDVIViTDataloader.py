@@ -19,7 +19,7 @@ class NDIVIViTDataloader(Dataset):
         self.scaler = StandardScaler() if scaler is None else scaler
       
         if mode == 'train':
-            self.ndvi_values = rearrange(reshaped_data[:train_size],"T P H W -> (T P) H W", T=tran_size, P=P)
+            self.ndvi_values = rearrange(reshaped_data[:train_size],"T P H W -> (T P) H W", T=train_size, P=P)
             self.ndvi_values = self.scaler.fit_transform(self.ndvi_values)
             self.ndvi_values = rearrange(self.ndvi_values,"(T P) H W -> T P H W", T=tran_size, P=P)
         elif mode == "val":
