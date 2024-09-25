@@ -10,26 +10,26 @@ class NDIVIViTDataloader(Dataset):
     def __init__(self, data,img_size=(64,64),mode='train', scaler=None):
 
         T, P, H, W = data.shape
-        reshaped_data = data.reshape(T * P, H, W)
         self.img_size = img_size
         train_size = int(0.75 * T * P)
         val_size = int(0.8 * T * P)
-
+        print()
         # Initialize or load the scaler
         self.scaler = StandardScaler() if scaler is None else scaler
       
         if mode == 'train':
-            self.ndvi_values = rearrange(reshaped_data[:train_size],"T P H W -> (T P) H W", T=train_size, P=P)
+            self.ndvi_values = rearrange(data[:train_size],"T P H W -> (T P) (H W)", T=train_size, P=P, H=H, W=W)
             self.ndvi_values = self.scaler.fit_transform(self.ndvi_values)
-            self.ndvi_values = rearrange(self.ndvi_values,"(T P) H W -> T P H W", T=tran_size, P=P)
+            self.ndvi_values = rearrange(self.ndvi_values,"(T P) (H W) -> T P H W", T=tran_size, P=P, H=H, W=W)
         elif mode == "val":
-            self.ndvi_values = reshaped_data[train_size:val_size].reshape(val_size - train_size, -1)
+            self.ndvi_values = rearrange(data[train_size:val_size],"T P H W -> (T P) (H W)", T=[train_size:val_size].shape[0], P=P, H=H, W=W)
             self.ndvi_values = self.scaler.transform(self.ndvi_values)
-            self.ndvi_values = self.ndvi_values.reshape(val_size - train_size, *self.img_size)
+            self.ndvi_values = rearrange(self.ndvi_values,"(T P) (H W) -> T P H W", T=data[train_size:val_size].shape[0], P=P, H=H, W=W)
         else:  
-            self.ndvi_values = reshaped_data[val_size:].reshape((T * P) - val_size, -1)
+            self.ndvi_values = rearrange(data[val_size:],"T P H W -> (T P) (H W)", T=data[val_size:].shape[0], P=P, H=H, W=W)
             self.ndvi_values = self.scaler.transform(self.ndvi_values)
-            self.ndvi_values = self.ndvi_values.reshape((T * P) - val_size, *self.img_size)
+            self.ndvi_values = rearrange(self.ndvi_values,"(T P) (H W) -> T P H W", T=data[val_size:].shape[0], P=P, H=H, W=W)
+    
 
 
     def __len__(self):
