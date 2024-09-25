@@ -1,5 +1,5 @@
 from data.feature_extraction.NDVIViTDataloader import NDIVIViTDataloader
-from model.TemporalTransformer.NDVIViTEncoder import NDIViTEncoder
+from model.TemporalTransformer.NDVIViTEncoder import NDVIViTEncoder
 from utils.traning import *
 from utils.process_data import get_data
 import pandas as pd
@@ -17,7 +17,7 @@ device = (
     else "cpu"
 )
 
-modelencoder =  NDIViTEncoder(image_size=64,num_patches=20, patch_size=3, in_channel=1, dim=128, depth=2, heads=8, mlp_ratio=4.)
+modelencoder =  NDVIViTEncoder(image_size=64,num_patches=20, patch_size=3, in_channel=1, dim=128, depth=2, heads=8, mlp_ratio=4.)
 
 ndvi_3d = np.load('64x64_patches.npy')
 
