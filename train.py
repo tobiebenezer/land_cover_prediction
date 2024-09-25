@@ -1,4 +1,4 @@
-from data.data import NDVIDataset
+from data.dataset import NDVIDataset
 from model.ndvi_model import NDVIModel
 from utils.traning import *
 from utils.process_data import get_data
