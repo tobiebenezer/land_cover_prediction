@@ -254,7 +254,7 @@ class PatchEmbedding(nn.Module):
         self.image_size = img_size
         self.patch_size = patch_size
         self.proj = nn.Sequential(
-            nn.Conv2d(in_chans, 64, kernel_size=patch_size, stride=patch_size)
+            nn.Conv2d(in_chans, 64, kernel_size=patch_size, stride=patch_size),
             nn.Conv2d(64, embed_dim, kernel_size=patch_size, stride=patch_size)
             )
 
