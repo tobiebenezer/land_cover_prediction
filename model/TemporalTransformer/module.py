@@ -223,7 +223,7 @@ class PositionalEncoder(nn.Module):
         return x
 
 class Transformer(nn.Module):
-    def __init__(self,dim,depth=1, num_head=8, mlp_ratio=4.0, qkv_bias=False, drop=0., attn_drop=0.):
+    def __init__(self,dim,depth=1, num_heads=8, mlp_ratio=4.0, qkv_bias=False, drop=0., attn_drop=0.):
         super().__init__()
         self.layers = nn.ModuleList([])
         self.norm = nn.LayerNorm(dim)
