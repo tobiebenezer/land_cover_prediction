@@ -120,7 +120,7 @@ class TemporalLayer(nn.Module):
 
         self.module = module
 
-    def forword(self, x):
+    def forward(self, x):
         x = rearrange("t n h -> (t n) h",x)
         x = self.module(x)
         x = rearrange("(t n) h -> t n h", x)
