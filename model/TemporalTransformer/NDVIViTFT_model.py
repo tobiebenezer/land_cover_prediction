@@ -14,6 +14,7 @@ class NDVIViTFT(MBase):
         num_heads, 
         hidden_size,
         output_size, 
+        image_size,
         dropout=0.2, 
         num_patches=25,
         patch_size=3, 
@@ -26,7 +27,7 @@ class NDVIViTFT(MBase):
         past_size=10):
         super().__init__()
 
-        self.encoder = NDVIViTEncoder(image_size=64,num_patches=num_patches, patch_size=patch_size, 
+        self.encoder = NDVIViTEncoder(image_size=image_size,num_patches=num_patches, patch_size=patch_size, 
                         in_channel=in_channel, dim=dim, depth=depth, heads=heads, mlp_ratio=mlp_ratio)
 
         input_size = dim * num_patches 
