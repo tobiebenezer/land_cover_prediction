@@ -67,10 +67,10 @@ class TemporalFusionTransformer(nn.Module):
         return torch.triu(torch.ones(tensor.size(0), tensor.size(0)), diagonal=1).bool().to(tensor.device)
 
     def forward(self, x, context):
-        x = self.input_embedding(x)
+        # x = self.input_embedding(x)
         print(x.shape)
 
-        # static_context_e, static_context_h, static_context_c = self.define_static_covariate_encoders(context)
+        static_context_e, static_context_h, static_context_c = self.define_static_covariate_encoders(context)
 
         # past_input = x[:, :self.past_size]
         # future_input = x[:, self.past_size:]
