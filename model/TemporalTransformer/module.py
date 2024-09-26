@@ -191,24 +191,18 @@ class GatedResidualNetwork(nn.Module):
         eta_1 = self.dropout(self.dense2(eta_2))
 
         gate = self.gate(eta_1) + a
-        print(f"Gate shape before layer_norm: {gate.shape}")
 
         # Reshape if necessary
         if self.is_temporal:
-            # Assuming the shape is (batch_size, sequence_length, features)
             gate = gate.transpose(1, 2)  # Change to (batch_size, features, sequence_length)
         else:
-            # If not temporal, ensure it's (batch_size, features)
             gate = gate.view(-1, self.output_size)
 
-        print(f"Gate shape after reshape: {gate.shape}")
         x = self.layer_norm(gate)
 
         # Reshape back if necessary
         if self.is_temporal:
             x = x.transpose(1, 2)
-
-        print(f"Output shape: {x.shape}")
         return x
 
 

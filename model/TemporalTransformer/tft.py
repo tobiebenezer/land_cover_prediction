@@ -59,12 +59,11 @@ class TemporalFusionTransformer(nn.Module):
         static_encoder = torch.cat([day_context, month_context], dim=-1)
        
         static_context_e = self.context_grn(static_encoder)
-        print(static_context_e.shape)
-        # static_context_h = self.static_context_state_h(static_encoder)
-        # static_context_c = self.static_context_state_c(static_encoder)
+        static_context_h = self.static_context_state_h(static_encoder)
+        static_context_c = self.static_context_state_c(static_encoder)
 
-        # return static_context_e, static_context_h, static_context_c
-        return context,context, context
+        return static_context_e, static_context_h, static_context_c
+
 
     def get_mask(self, tensor):
         return torch.triu(torch.ones(tensor.size(0), tensor.size(0)), diagonal=1).bool().to(tensor.device)
@@ -73,10 +72,10 @@ class TemporalFusionTransformer(nn.Module):
         # x = self.input_embedding(x)
         static_context_e, static_context_h, static_context_c = self.define_static_covariate_encoders(context)
         
-        # past_input = x[:, :self.past_size]
-        # future_input = x[:, self.past_size:]
+        past_input = x[:, :self.past_size]
+        future_input = x[:, self.past_size:]
 
-        # encoder_output, state_h, state_c = self.define_lstm_encoder(past_input, static_context_h, static_context_c)
+        encoder_output, state_h, state_c = self.define_lstm_encoder(past_input, static_context_h, static_context_c)
         # decoder_output = self.define_lstm_decoder(future_input, state_h[-1].unsqueeze(0), state_c[-1].unsqueeze(0))
         
         # lstm_outputs = torch.cat([encoder_output, decoder_output], dim=1)
