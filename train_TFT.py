@@ -41,6 +41,7 @@ modelencoder = NDVIViTFT()
 modelencoder.to(device)
 
 ndvi_3d = np.load('64x64_patches.npy')
+context = np.load('context.npy')
 
 class Scaler():
     def transform(self,x):
@@ -54,17 +55,17 @@ class Scaler():
 
 
 if not os.path.exists('scaler.pkl'):
-    train_dataset = NDIVIViTDataloader(ndvi_3d,mode="train")
+    train_dataset = NDIVIViTDataloader(ndvi_3d,context,mode="train")
     train_dataset.save_scaler('scaler.pkl')
     scaler = train_dataset.scaler
     
 else:
     # scaler = NDIVIViTDataloader.load_scaler('scaler.pkl')
     scaler = Scaler()
-    train_dataset = NDIVIViTDataloader(ndvi_3d,mode="train",scaler=scaler)
+    train_dataset = NDIVIViTDataloader(ndvi_3d,context,mode="train",scaler=scaler)
 
-test_dataset = NDIVIViTDataloader(ndvi_3d,mode="test",scaler=scaler)
-val_dataset = NDIVIViTDataloader(ndvi_3d,mode="val",scaler=scaler)
+test_dataset = NDIVIViTDataloader(ndvi_3d,context,mode="test",scaler=scaler)
+val_dataset = NDIVIViTDataloader(ndvi_3d,context,mode="val",scaler=scaler)
 
 train_dataloader = DataLoader(train_dataset,batch_size=25, shuffle=True,num_workers=2)
 val_dataloader = DataLoader(val_dataset,batch_size=25, shuffle=True,num_workers=2)

@@ -35,8 +35,11 @@ class NDVIViTFT(MBase):
         #                 output_size=output_size, num_heads=num_heads, 
         #                 dropout=dropout, num_layers=num_layers, past_size=past_size)
 
-    def forward(self,x,context):
-        encoded_output = self.encoder(x)
+    def forward(self,*agrs):
+        x = agrs[0]
+        context = agrs[1]
+        print(x.shape)
+        # encoded_output = self.encoder(x)
         # temporal_output = self.tft(encoded_output, context)
         return x # temporal_output
 
