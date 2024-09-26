@@ -46,7 +46,7 @@ class NDIVIViTDataloader(Dataset):
         y = torch.FloatTensor(self.ndvi_values[idx+self.sequence_length-4 : idx+self.sequence_length]).unsqueeze(0)
         context = torch.FloatTensor(self.context[idx: idx+self.sequence_length-4])
         
-        return (x, context),(y,[])
+        return x, context,(y,[])
     
     def save_scaler(self, path):
         """Save the scaler to a file."""

@@ -35,13 +35,25 @@ class NDVIViTFT(MBase):
         #                 output_size=output_size, num_heads=num_heads, 
         #                 dropout=dropout, num_layers=num_layers, past_size=past_size)
 
-    def forward(self,*agrs):
-        x = agrs[0]
-        context = agrs[1]
+    def forward(self,x, context):
         print(x.shape)
         encoded_output = self.encoder(x)
         # temporal_output = self.tft(encoded_output, context)
         return x # temporal_output
+
+    def training_step(self,batch):
+        X, context, (y ,_)= batch
+        out = self(X.to(device), context.to(device))
+        loss = F.mse_loss(out,y.to(device)) # calculating loss
+      
+        return loss
+    
+    def validation_step(self, batch):
+        X, context, ( y,_) = batch
+        out = self(X.to(device), context.to(device))
+        loss = F.mse_loss(out,y.to(device))
+        acc = accuracy(out, y.to(device))
+        return {'val_loss':loss.detach(), 'val_accuracy':acc}
 
 # class NDVIViTEncoder(nn.Module):
     # def __init__(self, image_size=64,passnum_patches=25, patch_size=3, in_channel=1, dim=128, depth=2, heads=8, mlp_ratio=4.):
