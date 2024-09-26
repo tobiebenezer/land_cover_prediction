@@ -259,8 +259,10 @@ class PatchEmbedding(nn.Module):
             )
 
     def forward(self, x):
+        x = rearrange(x, 'b p h w -> (b p) 1 h w')
         x = self.proj(x)
-        x = rearrange(x, 'b c h w -> b (h w) c')
+        print(x.shape)
+        x = rearrange(x, '(b p) 1 h w -> b p (h w)', b=x.shape[0], h=x.shape[1])
         return x
 
 
