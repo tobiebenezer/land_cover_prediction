@@ -11,10 +11,10 @@ from model.base import MBase
 
 class NDVIViTFT(MBase):
     def __init__(self,
-        num_heads, 
-        hidden_size,
-        output_size, 
-        image_size,
+        num_heads=8, 
+        hidden_size=128,
+        output_size=128, 
+        image_size=64,
         dropout=0.2, 
         num_patches=25,
         patch_size=3, 

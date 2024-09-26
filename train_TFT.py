@@ -27,10 +27,18 @@ dim=128
 depth=2
 heads=8
 mlp_ratio=4.
+num_heads=8, 
+hidden_size=128,
+output_size=128, 
+image_size=64,
+dropout=0.2, 
+num_patches=25,
+patch_size=3, 
+in_channel=1,
 
 
-modelencoder = NDVIViTFT(image_size=image_size,num_patches=num_patches, patch_size=patch_size, 
-                        in_channel=in_channel, dim=dim, depth=depth, heads=heads, mlp_ratio=mlp_ratio)
+modelencoder = NDVIViTFT(hidden_size=hidden_size, output_size=output_size, image_size=image_size,num_patches=num_patches, patch_size=patch_size, 
+                        in_channel=in_channel, dim=dim, depth=depth, heads=heads, mlp_ratio=mlp_ratio,dropout=dropout , num_layers=1, past_size=10)
 modelencoder.to(device)
 
 ndvi_3d = np.load('64x64_patches.npy')
