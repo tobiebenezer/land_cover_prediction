@@ -64,7 +64,7 @@ class TemporalFusionTransformer(nn.Module):
         # static_context_c = self.static_context_state_c(static_encoder)
 
         # return static_context_e, static_context_h, static_context_c
-        return context
+        return context,context, context
 
     def get_mask(self, tensor):
         return torch.triu(torch.ones(tensor.size(0), tensor.size(0)), diagonal=1).bool().to(tensor.device)
