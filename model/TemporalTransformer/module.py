@@ -249,18 +249,18 @@ class InterpretableMultiHeadAttention(nn.Module):
         return Attention(self.hidden_size, self.num_attention_heads)
 
 class PatchEmbedding(nn.Module):
-    def __init__(self, img_size=32, patch_size=3, in_chans=1, embed_dim=128):
+    def __init__(self, img_size=64, patch_size=3, in_chans=1, embed_dim=128):
         super().__init__()
         self.image_size = img_size
         self.patch_size = patch_size
         self.proj = nn.Sequential(
-            nn.Conv2d(in_chans, 64, kernel_size=patch_size, stride=patch_size),
-            nn.Conv2d(64, embed_dim, kernel_size=patch_size, stride=patch_size)
+            nn.Conv2d(in_chans, 64, kernel_size=patch_size, stride=1),
+            nn.Conv2d(64, embed_dim, kernel_size=patch_size, stride=1)
             )
 
     def forward(self, x):
         x = rearrange(x, 'b p h w -> (b p) 1 h w')
-        # a = self.proj(x)
+        a = self.proj(x)
         print(x.shape)
         # x = rearrange(x, '(b p) c h w -> b p (c h w)', b=x.shape[0], p=x.shape[1])
         return x
