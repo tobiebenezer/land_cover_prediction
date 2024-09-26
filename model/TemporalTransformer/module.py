@@ -179,7 +179,7 @@ class GatedResidualNetwork(nn.Module):
         if self.input_size != self.output_size:
             a = self.skip_layer(x)
         else:
-            a
+            a = x
 
         x = self.dense1(x)
         if context != None:
