@@ -236,8 +236,8 @@ class Transformer(nn.Module):
 
     def forward(self, x):
         for attn, mlp in self.layers:
-            x = x + self.attn(x)
-            x = x + self.mlp(x)
+            x = x + attn(x)
+            x = x + mlp(x)
         return self.norm(x)
 
 class InterpretableMultiHeadAttention(nn.Module):
