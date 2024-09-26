@@ -55,8 +55,9 @@ class TemporalFusionTransformer(nn.Module):
         month = context[:, 1]
         day_context = self.day_embedding(day_of_year)
         month_context = self.month_embedding(month - 1) 
+        print(day_context.shape)
         static_encoder = torch.cat([day_context, month_context], dim=-1)
-        print(static_encoder.shape)
+        # print(static_encoder.shape)
         # static_context_e = self.context_grn(static_encoder)
 
         # static_context_h = self.static_context_state_h(static_encoder)
