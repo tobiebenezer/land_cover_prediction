@@ -266,8 +266,8 @@ class PatchEmbedding(nn.Module):
         self.linear = nn.Linear(embed_dim * 10 * 10, embed_dim)
 
     def forward(self, x):
-        x = rearrange(x, 'b p h w -> (b p) 1 h w')
         b, n, _, _ = x.shape
+        x = rearrange(x, 'b p h w -> (b p) 1 h w')
         x = self.proj(x)
         x = rearrange(x, '(b p) c h w -> b p (c h w)', b=b, p=n)
         print('x shape',x.shape)
