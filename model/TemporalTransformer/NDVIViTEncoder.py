@@ -25,8 +25,8 @@ class NDVIViTEncoder(MBase):
         cls_tokens = repeat(self.cls_token, '() n d -> b n d', b=b)
         print(cls_tokens.shape)
         x = torch.cat((cls_tokens, x), dim=1)
-        print(x.shape)
-        print(self.pos_embedding[:, :(n + 1)].shape)
+        print(x.shape,n)
+        print(self.pos_embedding[:, :].shape)
         x += self.pos_embedding[:, :(n + 1)]
     
         x = self.dropout(x)
