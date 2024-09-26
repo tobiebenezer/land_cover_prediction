@@ -39,7 +39,6 @@ class NDVIViTFT(MBase):
         temporal_output = self.tft(encoded_output, context)
         return temporal_output
 
-
 # class NDVIViTEncoder(nn.Module):
     # def __init__(self, image_size=64,passnum_patches=25, patch_size=3, in_channel=1, dim=128, depth=2, heads=8, mlp_ratio=4.):
 # 
