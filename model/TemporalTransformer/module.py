@@ -213,7 +213,7 @@ class PositionalEncoder(nn.Module):
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term)  
 
-        pe = rearrange(pe, 'l d_model -> 1 seq_len d_model')
+        pe = rearrange(pe, 'l d_model -> 1 l d_model')
         self.register_buffer("pe", pe)
 
     def forward(self, x):

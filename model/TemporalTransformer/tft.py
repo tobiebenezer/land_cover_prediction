@@ -47,7 +47,7 @@ class TemporalFusionTransformer(nn.Module):
         return output, state_h, state_c
 
     # @torch.jit.script
-    def define_lstm_decoder(self, xcontext_size, state_h, state_c):
+    def define_lstm_decoder(self, x, state_h, state_c):
         output, (_, _) = self.decoder_lstm(x, (state_h, state_c))
         return output
 
