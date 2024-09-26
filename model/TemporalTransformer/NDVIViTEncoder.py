@@ -28,7 +28,6 @@ class NDVIViTEncoder(nn.Module):
         x = self.dropout(x)
         x = self.transformerblock(x)
         x = self.norm(x)
-        print(x.shape,b, n)
         return x
 
     

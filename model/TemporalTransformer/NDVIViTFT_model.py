@@ -36,8 +36,8 @@ class NDVIViTFT(MBase):
         self.encoder = NDVIViTEncoder(image_size=image_size,num_patches=num_patches, patch_size=patch_size, 
                         in_channel=in_channel, dim=dim, depth=depth, heads=heads, mlp_ratio=mlp_ratio)
 
-        input_size = dim * num_patches 
-        self.tft = TemporalFusionTransformer(input_size=input_size, hidden_size=hidden_size, 
+        input_size = dim * num_patches  
+        self.tft = TemporalFusionTransformer(input_size=3900, hidden_size=hidden_size, 
                         output_size=output_size, num_heads=num_heads, 
                         dropout=dropout, num_layers=num_layers, past_size=past_size)
 
