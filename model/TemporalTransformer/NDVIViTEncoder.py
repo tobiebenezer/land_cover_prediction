@@ -34,7 +34,7 @@ class NDVIViTEncoder(MBase):
         print(x.shape,)
 
         x = self.norm(x)
-        print(x.shape,)
+        print(x.shape)
         return x[:, 0]
 
     
