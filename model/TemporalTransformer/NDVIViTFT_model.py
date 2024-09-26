@@ -42,9 +42,10 @@ class NDVIViTFT(MBase):
         #                 dropout=dropout, num_layers=num_layers, past_size=past_size)
 
     def forward(self,x, context):
-        print(x.shape)
+       
         encoded_output = self.encoder(x)
-        # temporal_output = self.tft(encoded_output, context)
+        temporal_output = self.tft(encoded_output, context)
+        
         return x # temporal_output
 
     def training_step(self,batch):
