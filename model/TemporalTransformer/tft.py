@@ -53,7 +53,7 @@ class TemporalFusionTransformer(nn.Module):
     def define_static_covariate_encoders(self, context):
         day_of_year = context[:, 0]
         month = context[:, 1]
-        print(day_of_year.shape)
+        print(context.shape)
         print(month.shape)
         day_context = self.day_embedding(day_of_year)
         month_context = self.month_embedding(month - 1) 
