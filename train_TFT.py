@@ -37,8 +37,7 @@ patch_size=3,
 in_channel=1,
 
 
-modelencoder = NDVIViTFT(hidden_size=hidden_size, output_size=output_size, image_size=image_size,num_patches=num_patches, patch_size=patch_size, 
-                        in_channel=in_channel, dim=dim, depth=depth, heads=heads, mlp_ratio=mlp_ratio,dropout=dropout , num_layers=1, past_size=10)
+modelencoder = NDVIViTFT()
 modelencoder.to(device)
 
 ndvi_3d = np.load('64x64_patches.npy')
