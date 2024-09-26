@@ -51,7 +51,7 @@ class NDVIViTFT(MBase):
     def training_step(self,batch):
         X, context, (y ,_)= batch
         out = self(X.to(device), context.to(device))
-        print(out.shape)
+        print("out")
         loss = F.mse_loss(y.to(device),y.to(device)) # calculating loss
         # loss = 0.000
         return loss
