@@ -217,7 +217,8 @@ class PositionalEncoder(nn.Module):
 
     def forward(self, x):
         # x shape: [seq_len, batch_size, d_model]
-        x = self.pe[x]
+        x = torch.tensor(x, dtype=torch.long)
+        x = self.pe[x-1]
         
         return self.dropout(x)
 
