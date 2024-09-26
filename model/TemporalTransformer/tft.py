@@ -58,7 +58,8 @@ class TemporalFusionTransformer(nn.Module):
         static_encoder = torch.cat([day_context, month_context], dim=-1)
         
         static_context_e = self.context_grn(static_encoder)
-       
+        print(static_context_e.shape)
+
         # static_context_h = self.static_context_state_h(static_encoder)
         # static_context_c = self.static_context_state_c(static_encoder)
 
