@@ -53,8 +53,6 @@ class TemporalFusionTransformer(nn.Module):
     def define_static_covariate_encoders(self, context):
         day_of_year = context[:, :,0]
         month = context[:, :,1]
-        print(context.shape)
-        print(month.shape)
         day_context = self.day_embedding(day_of_year)
         month_context = self.month_embedding(month - 1) 
         
@@ -76,7 +74,7 @@ class TemporalFusionTransformer(nn.Module):
         
         past_input = x[:, :self.past_size]
         future_input = x[:, self.past_size:]
-
+        print(past_input.shape)
         encoder_output, state_h, state_c = self.define_lstm_encoder(past_input, static_context_h, static_context_c)
         # decoder_output = self.define_lstm_decoder(future_input, state_h[-1].unsqueeze(0), state_c[-1].unsqueeze(0))
         
