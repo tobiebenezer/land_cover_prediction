@@ -262,7 +262,7 @@ class PatchEmbedding(nn.Module):
         x = rearrange(x, 'b p h w -> (b p) 1 h w')
         x = self.proj(x)
         print(x.shape)
-        x = rearrange(x, '(b p) 1 h w -> b p (h w)', b=x.shape[0], h=x.shape[1])
+        x = rearrange(x, '(b p) c h w -> b p (c h w)', b=x.shape[0], p=x.shape[1])
         return x
 
 
