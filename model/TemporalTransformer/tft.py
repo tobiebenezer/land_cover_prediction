@@ -40,7 +40,7 @@ class TemporalFusionTransformer(nn.Module):
         self.output_add_norm = TemporalLayer(nn.BatchNorm1d(hidden_size))
         self.output = nn.Linear(hidden_size, output_size)
 
-    @torch.jit.scriptfuture_size
+    @torch.jit.script
     def define_lstm_encoder(self, x, static_context_h, static_context_c):
         output, (state_h, state_c) = self.encoder_lstm(x, (static_context_h.unsqueeze(0).repeat(self.num_layers,1,1), 
                                                         static_context_c.unsqueeze(0).repeat(self.num_layers,1,1)))
