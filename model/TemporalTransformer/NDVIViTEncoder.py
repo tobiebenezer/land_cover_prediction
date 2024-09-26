@@ -28,7 +28,7 @@ class NDVIViTEncoder(MBase):
         x = self.dropout(x)
         x = self.transformerblock(x)
         x = self.norm(x)
-        # print(x.shape)
+        print(x.shape)
         return x[:, 0]
 
     
