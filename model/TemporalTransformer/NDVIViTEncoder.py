@@ -21,11 +21,11 @@ class NDVIViTEncoder(MBase):
 
     def forward(self, x):
         x = self.patch_embedding(x)
-        # b, n, _ = x.shape
-        # cls_tokens = repeat(self.cls_token, '() n d -> b n d', b=b)
-        # x = torch.cat((cls_tokens, x), dim=1)
-        # x += self.pos_embedding[:, :(n + 1)]
-        # x = self.dropout(x)
+        b, n, _ = x.shape
+        cls_tokens = repeat(self.cls_token, '() n d -> b n d', b=b)
+        x = torch.cat((cls_tokens, x), dim=1)
+        x += self.pos_embedding[:, :(n + 1)]
+        x = self.dropout(x)
         # x = self.transformerblock(x)
         # x = self.norm(x)
         # print(x.shape)
