@@ -67,38 +67,39 @@ class TemporalFusionTransformer(nn.Module):
         return torch.triu(torch.ones(tensor.size(0), tensor.size(0)), diagonal=1).bool().to(tensor.device)
 
     def forward(self, x, context):
-        print(x.shape)
         x = self.input_embedding(x)
+        print(x.shape)
 
-        static_context_e, static_context_h, static_context_c = self.define_static_covariate_encoders(context)
+        # static_context_e, static_context_h, static_context_c = self.define_static_covariate_encoders(context)
 
-        past_input = x[:, :self.past_size]
-        future_input = x[:, self.past_size:]
+        # past_input = x[:, :self.past_size]
+        # future_input = x[:, self.past_size:]
 
-        encoder_output, state_h, state_c = self.define_lstm_encoder(past_input, static_context_h, static_context_c)
-        decoder_output = self.define_lstm_decoder(future_input, state_h[-1].unsqueeze(0), state_c[-1].unsqueeze(0))
+        # encoder_output, state_h, state_c = self.define_lstm_encoder(past_input, static_context_h, static_context_c)
+        # decoder_output = self.define_lstm_decoder(future_input, state_h[-1].unsqueeze(0), state_c[-1].unsqueeze(0))
         
-        lstm_outputs = torch.cat([encoder_output, decoder_output], dim=1)
-        gated_outputs = self.gated_skip_connection(lstm_outputs)
-        temporal_feature_outputs = self.add_norm(x + gated_outputs)
+        # lstm_outputs = torch.cat([encoder_output, decoder_output], dim=1)
+        # gated_outputs = self.gated_skip_connection(lstm_outputs)
+        # temporal_feature_outputs = self.add_norm(x + gated_outputs)
 
-        static_enrichment_outputs = self.static_enrichment(torch.cat([temporal_feature_outputs, static_context_e.unsqueeze(1).expand(-1, temporal_feature_outputs.size(1), -1)], dim=-1))
+        # static_enrichment_outputs = self.static_enrichment(torch.cat([temporal_feature_outputs, static_context_e.unsqueeze(1).expand(-1, temporal_feature_outputs.size(1), -1)], dim=-1))
 
-        mask = self.get_mask(static_enrichment_outputs)
-        multihead_outputs, multihead_attention = self.multihead_attn(static_enrichment_outputs, static_enrichment_outputs, static_enrichment_outputs, attn_mask=mask)
+        # mask = self.get_mask(static_enrichment_outputs)
+        # multihead_outputs, multihead_attention = self.multihead_attn(static_enrichment_outputs, static_enrichment_outputs, static_enrichment_outputs, attn_mask=mask)
         
-        attention_gated_outputs = self.attention_gated_skip_connection(multihead_outputs)
-        attention_outputs = self.attention_add_norm(attention_gated_outputs + static_enrichment_outputs)
+        # attention_gated_outputs = self.attention_gated_skip_connection(multihead_outputs)
+        # attention_outputs = self.attention_add_norm(attention_gated_outputs + static_enrichment_outputs)
 
-        temporal_fusion_decoder_outputs = self.position_wise_feed_forward(attention_outputs)
+        # temporal_fusion_decoder_outputs = self.position_wise_feed_forward(attention_outputs)
 
-        gate_outputs = self.output_gated_skip_connection(temporal_fusion_decoder_outputs)
-        norm_outputs = self.output_add_norm(gate_outputs + temporal_feature_outputs)
+        # gate_outputs = self.output_gated_skip_connection(temporal_fusion_decoder_outputs)
+        # norm_outputs = self.output_add_norm(gate_outputs + temporal_feature_outputs)
 
-        output = self.output(norm_outputs[:, self.past_size:, :]).view(-1, self.output_size)
+        # output = self.output(norm_outputs[:, self.past_size:, :]).view(-1, self.output_size)
         
-        attention_weights = {
-            'multihead_attention': multihead_attention,
-        }
+        # attention_weights = {
+        #     'multihead_attention': multihead_attention,
+        # }
 
-        return output, attention_weights
+        # return output, attention_weights
+        return x
