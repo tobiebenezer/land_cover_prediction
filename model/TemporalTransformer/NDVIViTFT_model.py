@@ -21,7 +21,7 @@ class NDVIViTFT(MBase):
         hidden_size=128,
         output_size=128, 
         image_size=64,
-        dropout=0.2, 
+        dropout= 0.2, 
         num_patches=25,
         patch_size=3, 
         in_channel=1,
@@ -29,7 +29,7 @@ class NDVIViTFT(MBase):
         depth=2,
         heads=8, 
         mlp_ratio=4.,
-        num_layers=1,
+        num_layers=2,
         past_size=10):
         super().__init__()
 
