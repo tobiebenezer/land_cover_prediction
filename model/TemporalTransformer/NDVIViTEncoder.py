@@ -24,10 +24,15 @@ class NDVIViTEncoder(MBase):
         x = self.patch_embedding(x)
         b, n, _ = x.shape
         cls_tokens = repeat(self.cls_token, '() n d -> b n d', b=b)
+        print(cls_tokens.shape)
         x = torch.cat((cls_tokens, x), dim=1)
+        print(x.shape,)
         x += self.pos_embedding[:, :(n + 1)]
+        print(x.shape,)
         x = self.dropout(x)
         x = self.transformerblock(x)
+        print(x.shape,)
+
         x = self.norm(x)
         print(x.shape,)
         return x[:, 0]
