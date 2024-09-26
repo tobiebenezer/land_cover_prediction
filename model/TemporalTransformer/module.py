@@ -209,7 +209,7 @@ class PositionalEncoder(nn.Module):
         div_term = torch.exp(torch.arange(0, d_model, 2, dtype=torch.float) * -(math.log(10000.0) / d_model))
         
         # Compute sine and cosine
-        pe = torch.zeros(max_seq_len, d_model)
+        pe = torch.zeros(max_len, d_model)
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term)  
 
@@ -349,11 +349,6 @@ class ScaledDotProductAttention(nn.Module):
         output = torch.einsum('bhts,bhsd->bhtd', attention, value)
 
         return output, attention
-
-
-
-
-   
 
 class PatchEmbedding(nn.Module):
     def __init__(self, img_size=64, patch_size=3, in_chans=1, embed_dim=128):
