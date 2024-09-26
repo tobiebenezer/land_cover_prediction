@@ -254,14 +254,13 @@ class PatchEmbedding(nn.Module):
         self.image_size = img_size
         self.patch_size = patch_size
         self.proj = nn.Sequential(
-            nn.Conv2d(in_chans, 64, kernel_size=patch_size, stride=1),
-            nn.Conv2d(64, embed_dim, kernel_size=patch_size, stride=1)
+            nn.Conv2d(in_chans, embed_dim, kernel_size=patch_size, stride=1),
             )
 
     def forward(self, x):
         x = rearrange(x, 'b p h w -> (b p) 1 h w')
         a = self.proj(x)
-        print(x.shape)
+        print(a.shape)
         # x = rearrange(x, '(b p) c h w -> b p (c h w)', b=x.shape[0], p=x.shape[1])
         return x
 

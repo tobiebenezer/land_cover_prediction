@@ -18,6 +18,7 @@ device = (
 )
 
 modelencoder =  NDVIViTEncoder(image_size=64,num_patches=20, patch_size=3, in_channel=1, dim=128, depth=2, heads=8, mlp_ratio=4.)
+modelencoder.to(device)
 
 ndvi_3d = np.load('64x64_patches.npy')
 
