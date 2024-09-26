@@ -20,6 +20,7 @@ class NDVIViTEncoder(MBase):
         self.norm = nn.LayerNorm(dim)
 
     def forward(self, x):
+        print(x.shape)
         x = self.patch_embedding(x)
         b, n, _ = x.shape
         cls_tokens = repeat(self.cls_token, '() n d -> b n d', b=b)
@@ -28,7 +29,7 @@ class NDVIViTEncoder(MBase):
         x = self.dropout(x)
         x = self.transformerblock(x)
         x = self.norm(x)
-        print(x.shape)
+        print(x.shape,)
         return x[:, 0]
 
     
