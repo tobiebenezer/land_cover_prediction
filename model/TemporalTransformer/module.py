@@ -240,13 +240,74 @@ class Transformer(nn.Module):
             x = x + mlp(x)
         return self.norm(x)
 
+class ScaledDotProductAttention(nn.Module):
+    def __init__(self, dropout):
+        super(ScaledDotProductAttention, self).__init__()
+        self.dropout = nn.Dropout(dropout)
+        self.softmax = nn.Softmax(dim=2)
+
+    def forward(self, query, key, value, mask=None):
+        """
+        Args:
+            query (torch.tensor)
+            key (torch.tensor)
+            value (torch.tensor)
+        """
+
+        d_k = key.shape[-1]
+        scaling_factor = torch.sqrt(torch.tensor(d_k).to(torch.float32))
+        scaled_dot_product = torch.matmul(query, key.permute(0, 2, 1)) / scaling_factor
+
+        if mask != None:
+            scaled_dot_product = scaled_dot_product.masked_fill(mask == 0, -1e9)
+
+        attention = self.softmax(scaled_dot_product)
+        attention = self.dropout(attention)
+        ouput = torch.matmul(attention, value)
+
+        return output, attention
+
+
+
+
 class InterpretableMultiHeadAttention(nn.Module):
-    def __init__(self, num_attention_heads, hidden_size):
+    def __init__(self, num_attention_heads, hidden_size, dropout=0.1):
+        super(InterpretableMultiHeadAttention, self).__init__()
         self.num_attention_heads = num_attention_heads
         self.hidden_size = hidden_size
+        self.attention_head_size = int(hidden_size / num_attention_heads)
+        self.all_head_size = self.num_attention_heads * self.attention_head_size
+        self.dropout = nn.Dropout(dropout)
 
-    def forward(self, x):
-        return Attention(self.hidden_size, self.num_attention_heads)
+        self.qs = nn.ModuleList([nn.Linear(self.hidden_size, self.attention_head_size,bias=False) for _ in range(self.num_attention_heads)])
+        self.ks = nn.ModuleList([nn.Linear(self.hidden_size, self.attention_head_size,bias=False) for _ in range(self.num_attention_heads)])
+
+        vs_layer = nn.Linear(self.hidden_size, self.all_head_size,bias=False)
+        self.vs = nn.ModuleList([vs_layer for _ in range(self.num_attention_heads)])
+
+        self.attention = ScaleDotProductAttention()
+        self.linear = nn.Linear(self.hidden_size, self.hidden_size, bias=False)
+
+    def forword(self,query, key, value, mask = None):
+        batch_size, tgt_len, embed_dim = query.shape
+        heads = []
+        attentions =[]
+
+        for i in range(self.num_attention_heads):
+            q_i = self.qs[i](query)
+            k_i = self.ks[i](key)
+            v_i = self.vs[i](value)
+
+            head, attention = self.attention(q_i, k_i, v_i, mask)
+
+            #Revert to original target shape
+            head
+
+
+
+
+
+   
 
 class PatchEmbedding(nn.Module):
     def __init__(self, img_size=64, patch_size=3, in_chans=1, embed_dim=128):
@@ -271,7 +332,7 @@ class PatchEmbedding(nn.Module):
         x = self.proj(x)
         x = rearrange(x, '(b p) c h w -> b p (c h w)', b=b, p=n)
         x = self.linear(x)
-        
+
         return x
 
 
