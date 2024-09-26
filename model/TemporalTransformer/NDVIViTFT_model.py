@@ -30,15 +30,15 @@ class NDVIViTFT(MBase):
         self.encoder = NDVIViTEncoder(image_size=image_size,num_patches=num_patches, patch_size=patch_size, 
                         in_channel=in_channel, dim=dim, depth=depth, heads=heads, mlp_ratio=mlp_ratio)
 
-        input_size = dim * num_patches 
-        self.tft = TemporalFusionTransformer(input_size=input_size, hidden_size=hidden_size, 
-                        output_size=output_size, num_heads=num_heads, 
-                        dropout=dropout, num_layers=num_layers, past_size=past_size)
+        # input_size = dim * num_patches 
+        # self.tft = TemporalFusionTransformer(input_size=input_size, hidden_size=hidden_size, 
+        #                 output_size=output_size, num_heads=num_heads, 
+        #                 dropout=dropout, num_layers=num_layers, past_size=past_size)
 
     def forward(self,x,context):
         encoded_output = self.encoder(x)
-        temporal_output = self.tft(encoded_output, context)
-        return temporal_output
+        # temporal_output = self.tft(encoded_output, context)
+        return x # temporal_output
 
 # class NDVIViTEncoder(nn.Module):
     # def __init__(self, image_size=64,passnum_patches=25, patch_size=3, in_channel=1, dim=128, depth=2, heads=8, mlp_ratio=4.):
