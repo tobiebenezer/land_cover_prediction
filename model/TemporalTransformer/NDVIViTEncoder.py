@@ -20,8 +20,8 @@ class NDVIViTEncoder(MBase):
         self.norm = nn.LayerNorm(dim)
 
     def forward(self, x):
-        x = self.patch_embedding(x)
         b, n, _ = x.shape
+        x = self.patch_embedding(x)
         cls_tokens = repeat(self.cls_token, '() n d -> b n d', b=b)
         print(cls_tokens.shape)
         x = torch.cat((cls_tokens, x), dim=1)
