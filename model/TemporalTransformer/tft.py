@@ -21,7 +21,6 @@ class TemporalFusionTransformer(nn.Module):
         self.encoder_lstm = nn.LSTM(hidden_size, hidden_size, num_layers, dropout=dropout, batch_first=True)
         self.decoder_lstm = nn.LSTM(hidden_size, hidden_size, num_layers, dropout=dropout, batch_first=True)
         self.temporal_grn = GatedResidualNetwork(hidden_size * 2, hidden_size, hidden_size, dropout)
-        self.self_attn = TemporalSelfAttention(hidden_size, num_heads, dropout)
         self.final_grn = GatedResidualNetwork(hidden_size, hidden_size, output_size, dropout)
 
         self.gated_skip_connection = TemporalLayer(GLU(hidden_size))
