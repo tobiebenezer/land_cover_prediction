@@ -195,13 +195,15 @@ class GatedResidualNetwork(nn.Module):
 
 
 class PositionalEncoder(nn.Module):
-    def __init__(self, d_model, max_seq_len=160):
+    def __init__(self, d_model, dropout=0.1,max_len=160):
         super().__init__()
         assert d_model % 2 == 0, "model dimension has to be multiple of 2 (encode sin(pos) and cos(pos))"
         self.d_model = d_model
+        self.dropout = nn.Dropout(dropout)
+        self.max_len = max_len
 
         # Vectorized positional encoding computation
-        position = torch.arange(max_seq_len, dtype=torch.float).unsqueeze(1) 
+        position = torch.arange(max_len, dtype=torch.float).unsqueeze(1) 
         div_term = torch.exp(torch.arange(0, d_model, 2, dtype=torch.float) * -(math.log(10000.0) / d_model))
         
         # Compute sine and cosine
@@ -220,7 +222,8 @@ class PositionalEncoder(nn.Module):
         x = x * math.sqrt(self.d_model)
         pe_slice = self.pe[:, :seq_len, :]
         x = x + rearrange(pe_slice, '1 seq_len d_model -> seq_len 1 d_model')
-        return x
+        return self.dropout(x)
+
 
 class Transformer(nn.Module):
     def __init__(self,dim,depth=1, num_heads=8, mlp_ratio=4.0, qkv_bias=False, drop=0., attn_drop=0.):
