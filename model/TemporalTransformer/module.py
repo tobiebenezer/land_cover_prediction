@@ -240,69 +240,110 @@ class Transformer(nn.Module):
             x = x + mlp(x)
         return self.norm(x)
 
-class ScaledDotProductAttention(nn.Module):
-    def __init__(self, dropout):
-        super(ScaledDotProductAttention, self).__init__()
+class InterpretableMultiHeadAttention(nn.Module):
+    """
+    Interpretable Multi-Head Attention using shared values for each head.
+    Uses einsum and einops for efficient tensor manipulations.
+
+    Args:
+        num_attention_heads (int): Number of attention heads
+        hidden_size (int): Hidden size of the model
+        dropout (float): Fraction between 0 and 1 corresponding to the degree of dropout used
+    """
+    def __init__(self, num_attention_heads, hidden_size, dropout=0.0):
+        super().__init__()
+
+        self.num_attention_heads = num_attention_heads
+        self.hidden_size = hidden_size
         self.dropout = nn.Dropout(dropout)
-        self.softmax = nn.Softmax(dim=2)
+
+        # Linear layers for queries, keys, and shared values
+        self.qs = nn.ModuleList([nn.Linear(self.hidden_size, self.hidden_size, bias=False) for _ in range(self.num_attention_heads)])
+        self.ks = nn.ModuleList([nn.Linear(self.hidden_size, self.hidden_size, bias=False) for _ in range(self.num_attention_heads)])
+        self.vs = nn.Linear(self.hidden_size, self.hidden_size, bias=False)  # shared value layer
+
+        self.attention = ScaledDotProductAttention()
+        self.linear = nn.Linear(self.hidden_size, self.hidden_size, bias=False)
+
+    def forward(self, query, key, value, mask=None):
+        batch_size, tgt_len, embed_dim = query.shape
+        head_dim = embed_dim // self.num_attention_heads
+
+        # Project queries, keys, and values for each head using einsum for efficiency
+        queries = [self.qs[i](query) for i in range(self.num_attention_heads)]
+        keys = [self.ks[i](key) for i in range(self.num_attention_heads)]
+        values = self.vs(value)  # shared value
+
+        heads = []
+        attentions = []
+
+        # Process each head separately
+        for q_i, k_i in zip(queries, keys):
+            # Rearrange and apply attention
+            q_i = rearrange(q_i, 'b t (h d) -> b h t d', h=self.num_attention_heads)
+            k_i = rearrange(k_i, 'b t (h d) -> b h t d', h=self.num_attention_heads)
+            v_i = rearrange(values, 'b t (h d) -> b h t d', h=self.num_attention_heads)
+
+            head, attention = self.attention(q_i, k_i, v_i, mask)
+
+            # Revert shape and apply dropout
+            head = rearrange(head, 'b h t d -> b t (h d)')
+            heads.append(self.dropout(head))
+            attentions.append(attention)
+
+        # Average over heads for interpretability
+        heads = torch.stack(heads, dim=2) 
+        outputs = torch.mean(heads, dim=2)  
+
+        attentions = torch.stack(attentions, dim=2)
+        attention = torch.mean(attentions, dim=2)  
+        
+        # Final linear transformation and dropout
+        outputs = self.linear(outputs)
+        outputs = self.dropout(outputs)
+
+        return outputs, attention
+
+
+class ScaledDotProductAttention(nn.Module):
+    """
+    Scaled Dot-Product Attention with einsum and einops for efficient tensor manipulation.
+    
+    Args:
+        dropout (float): Fraction between 0 and 1 corresponding to the degree of dropout used
+    """
+    def __init__(self, dropout=0.0):
+        super().__init__()
+
+        self.dropout = nn.Dropout(dropout)
+        self.softmax = nn.Softmax(dim=-1)
 
     def forward(self, query, key, value, mask=None):
         """
         Args:
-            query (torch.tensor)
-            key (torch.tensor)
-            value (torch.tensor)
+            query (torch.Tensor): Query tensor of shape (batch_size, num_heads, tgt_len, head_dim)
+            key (torch.Tensor): Key tensor of shape (batch_size, num_heads, src_len, head_dim)
+            value (torch.Tensor): Value tensor of shape (batch_size, num_heads, src_len, head_dim)
+            mask (torch.Tensor, optional): Attention mask of shape (batch_size, 1, tgt_len, src_len)
+
+        Returns:
+            output (torch.Tensor): Output tensor of shape (batch_size, num_heads, tgt_len, head_dim)
+            attention (torch.Tensor): Attention weights of shape (batch_size, num_heads, tgt_len, src_len)
         """
+        # Scaled dot-product between query and key using einsum
+        scaling_factor = torch.sqrt(torch.tensor(query.shape[-1], dtype=torch.float32))
+        attention_scores = torch.einsum('bhtd,bhsd->bhts', query, key) / scaling_factor
 
-        d_k = key.shape[-1]
-        scaling_factor = torch.sqrt(torch.tensor(d_k).to(torch.float32))
-        scaled_dot_product = torch.matmul(query, key.permute(0, 2, 1)) / scaling_factor
+        if mask is not None:
+            attention_scores = attention_scores.masked_fill(mask == 0, float('-inf'))
 
-        if mask != None:
-            scaled_dot_product = scaled_dot_product.masked_fill(mask == 0, -1e9)
-
-        attention = self.softmax(scaled_dot_product)
+        attention = self.softmax(attention_scores)
         attention = self.dropout(attention)
-        ouput = torch.matmul(attention, value)
+
+        # Apply attention to value using einsum
+        output = torch.einsum('bhts,bhsd->bhtd', attention, value)
 
         return output, attention
-
-
-
-
-class InterpretableMultiHeadAttention(nn.Module):
-    def __init__(self, num_attention_heads, hidden_size, dropout=0.1):
-        super(InterpretableMultiHeadAttention, self).__init__()
-        self.num_attention_heads = num_attention_heads
-        self.hidden_size = hidden_size
-        self.attention_head_size = int(hidden_size / num_attention_heads)
-        self.all_head_size = self.num_attention_heads * self.attention_head_size
-        self.dropout = nn.Dropout(dropout)
-
-        self.qs = nn.ModuleList([nn.Linear(self.hidden_size, self.attention_head_size,bias=False) for _ in range(self.num_attention_heads)])
-        self.ks = nn.ModuleList([nn.Linear(self.hidden_size, self.attention_head_size,bias=False) for _ in range(self.num_attention_heads)])
-
-        vs_layer = nn.Linear(self.hidden_size, self.all_head_size,bias=False)
-        self.vs = nn.ModuleList([vs_layer for _ in range(self.num_attention_heads)])
-
-        self.attention = ScaleDotProductAttention()
-        self.linear = nn.Linear(self.hidden_size, self.hidden_size, bias=False)
-
-    def forword(self,query, key, value, mask = None):
-        batch_size, tgt_len, embed_dim = query.shape
-        heads = []
-        attentions =[]
-
-        for i in range(self.num_attention_heads):
-            q_i = self.qs[i](query)
-            k_i = self.ks[i](key)
-            v_i = self.vs[i](value)
-
-            head, attention = self.attention(q_i, k_i, v_i, mask)
-
-            #Revert to original target shape
-            head
-
 
 
 
