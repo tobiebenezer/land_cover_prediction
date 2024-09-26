@@ -129,7 +129,7 @@ class TemporalLayer(nn.Module):
 
 class GatedResidualNetwork(nn.Module):
     def __init__(self, input_size, hidden_size, output_size, dropout=0., context_size=None, is_temporal=False):
-        super(GateResidualNetwork, self).__init__()
+        super(GatedResidualNetwork, self).__init__()
 
         self.input_size = input_size
         self.hidden_size = hidden_size
