@@ -175,8 +175,6 @@ class GatedResidualNetwork(nn.Module):
             self.layer_norm = nn.BatchNorm1d(self.output_size)
 
     def forward(self, x, context=None):
-        print(f"Input shape: {x.shape}")
-
         if self.input_size != self.output_size:
             a = self.skip_layer(x)
         else:
