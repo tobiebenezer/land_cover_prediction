@@ -16,7 +16,7 @@ class NDVIViTEncoder(MBase):
         self.pos_embedding = nn.Parameter(torch.randn(1, num_patches + 1, dim))
         self.dropout = nn.Dropout(0.1)
 
-        self.tansformerblock = Transformer(dim=dim, depth=depth, num_heads=heads, mlp_ratio=mlp_ratio)
+        self.transformerblock = Transformer(dim=dim, depth=depth, num_heads=heads, mlp_ratio=mlp_ratio)
         self.norm = nn.LayerNorm(dim)
 
     def forward(self, x):
