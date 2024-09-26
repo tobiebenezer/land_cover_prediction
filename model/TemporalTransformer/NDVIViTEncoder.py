@@ -19,8 +19,8 @@ class NDVIViTEncoder(nn.Module):
         self.norm = nn.LayerNorm(dim)
 
     def forward(self, x):
-        x = rearrange(x, 'b s p h w -> (b s) p h w')
         print(x.shape)
+        # x = rearrange(x, 'b s p h w -> (b s) p h w')
         # b, n, _, _ = x.shape
         # x = self.patch_embedding(x)
         # cls_tokens = repeat(self.cls_token, '() n d -> b n d', b=b)
