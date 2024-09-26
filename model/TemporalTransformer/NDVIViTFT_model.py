@@ -39,7 +39,7 @@ class NDVIViTFT(MBase):
         x = agrs[0]
         context = agrs[1]
         print(x.shape)
-        # encoded_output = self.encoder(x)
+        encoded_output = self.encoder(x)
         # temporal_output = self.tft(encoded_output, context)
         return x # temporal_output
 
