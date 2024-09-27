@@ -116,6 +116,7 @@ class TemporalFusionTransformer(nn.Module):
         print(multihead_outputs.shape,"multihead_outputs")
         print(multihead_attention.shape,"multihead_attention")
 
+        static_enrichment_outputs = rearrange(static_enrichment_outputs, "(b s) h -> b s h", s=gated_outputs.shape[1])
         attention_gated_outputs = self.attention_gated_skip_connection(multihead_outputs)
         attention_outputs = self.attention_add_norm(attention_gated_outputs + static_enrichment_outputs)
 
