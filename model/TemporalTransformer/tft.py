@@ -83,20 +83,22 @@ class TemporalFusionTransformer(nn.Module):
         future_size = int(future_size)
         
         static_context_e, static_context_h, static_context_c = self.define_static_covariate_encoders(context)
+        print(static_context_c.shape, 'static')
+        print(static_context_h.shape, 'static')
 
         past_input = rearrange(x[:future_size, :, :], "(b s) n h -> b s (n h)", b=b)
         future_input = rearrange(x[future_size:, :, :], "(b s) n h -> b s (n h)", b=b)
      
-        encoder_output, state_h, state_c = self.define_lstm_encoder(past_input, static_context_h, static_context_c)       
-        decoder_output = self.define_lstm_decoder(future_input, state_h, state_c)
-        print(encoder_output.shape,'encoder')
-        print(decoder_output.shape, 'decoder')
+        # encoder_output, state_h, state_c = self.define_lstm_encoder(past_input, static_context_h, static_context_c)       
+        # decoder_output = self.define_lstm_decoder(future_input, state_h, state_c)
+        # print(encoder_output.shape,'encoder')
+        # print(decoder_output.shape, 'decoder')
         
-        lstm_outputs = torch.cat([encoder_output, decoder_output], dim=1)
+        # lstm_outputs = torch.cat([encoder_output, decoder_output], dim=1)
          
-        lstm_outputs = rearrange(lstm_outputs, "b s (n h) -> b (s n) h", h=self.hidden_size)
-        gated_outputs = self.gated_skip_connection(lstm_outputs)
-        temporal_feature_outputs = self.add_norm(x + gated_outputs)
+        # lstm_outputs = rearrange(lstm_outputs, "b s (n h) -> b (s n) h", h=self.hidden_size)
+        # gated_outputs = self.gated_skip_connection(lstm_outputs)
+        # temporal_feature_outputs = self.add_norm(x + gated_outputs)
 
         # static_enrichment_outputs = self.static_enrichment(torch.cat([temporal_feature_outputs, static_context_e.unsqueeze(1).expand(-1, temporal_feature_outputs.size(1), -1)], dim=-1))
 
