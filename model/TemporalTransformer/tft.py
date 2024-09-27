@@ -110,7 +110,7 @@ class TemporalFusionTransformer(nn.Module):
         static_context_e_reshaped = rearrange(static_context_e, "b (s h) -> b s h", s=gated_outputs.shape[1] ) #.reshape(24, 25, 128)
         static_enrichment_outputs = self.static_enrichment(torch.cat([temporal_feature_outputs, static_context_e_reshaped], dim=-1))
 
-        # mask = self.get_mask(static_enrichment_outputs)
+        mask = self.get_mask(static_enrichment_outputs)
         # multihead_outputs, multihead_attention = self.multihead_attn(static_enrichment_outputs, static_enrichment_outputs, static_enrichment_outputs, attn_mask=mask)
         
         # attention_gated_outputs = self.attention_gated_skip_connection(multihead_outputs)
