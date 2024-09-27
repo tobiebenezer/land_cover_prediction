@@ -80,7 +80,7 @@ class TemporalFusionTransformer(nn.Module):
         future_size = x.shape[0] * 0.75
         future_size = int(future_size)
 
-        static_context_e, static_context_h, static_context_c = self.define_static_covariate_encoders(context[:future_size, :, :])
+        static_context_e, static_context_h, static_context_c = self.define_static_covariate_encoders(context)
 
         past_input = rearrange(x[:future_size, :, :], "(b s) n h -> b s (n h)", b=b)
         future_input = rearrange(x[future_size:, :, :], "(b s) n h -> b s (n h)", b=b)
