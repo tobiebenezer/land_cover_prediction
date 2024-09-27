@@ -122,7 +122,7 @@ class TemporalFusionTransformer(nn.Module):
         print(attention_outputs.shape,"attention_outputs")
 
         temporal_fusion_decoder_outputs = self.position_wise_feed_forward(attention_outputs)
-        temporal_feature_decoder_outputs = arrange(temporal_fussion_decoder_outputs, "(b s)  h -> b s h", s=gated_outputs.shape[1]) #.reshape(batch x sequence, patch, hidden)
+        temporal_feature_decoder_outputs = rearrange(temporal_fussion_decoder_outputs, "(b s)  h -> b s h", s=gated_outputs.shape[1]) #.reshape(batch x sequence, patch, hidden)
         print(temporal_fusion_decoder_outputs.shape,"temporal_fusion_decoder_outputs")
 
         gate_outputs = self.output_gated_skip_connection(temporal_fusion_decoder_outputs)
