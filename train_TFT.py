@@ -72,7 +72,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='training')
     parser.add_argument('--EPOCHS', type=int, help='number of epochs')
     parser.add_argument('--LR', type=float, help='learning rate')
-    parser.add_argument('--BATCH_SIZE', type=float, help='learning rate')
+    parser.add_argument('--BATCH_SIZE', type=int, help='learning rate')
     args = parser.parse_args()
 
 
