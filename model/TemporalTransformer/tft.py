@@ -127,7 +127,8 @@ class TemporalFusionTransformer(nn.Module):
 
         gate_outputs = self.output_gated_skip_connection(temporal_fusion_decoder_outputs)
         norm_outputs = self.output_add_norm(gate_outputs + temporal_feature_outputs)
-
+        print(norm_outputs.shape,"norm_outputs")
+        print(norm_outputs[:, future_size:, :].shape,"norm_outputs",future_size)
         # output = self.output(norm_outputs[:, self.past_size:, :]).view(-1, self.output_size)
         output = self.output(norm_outputs[:, future_size:, :]).view(-1, self.output_size)
         print(output.shape,"output")
