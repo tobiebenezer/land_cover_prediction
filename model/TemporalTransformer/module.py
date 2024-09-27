@@ -110,6 +110,7 @@ class GLU(nn.Module):
         self.proj_gate = nn.Linear(dim, dim)
 
     def forward(self,x):
+        print("GLU")
         gate = self.sigmoid(self.proj_gate(x))
         x = self.proj(x)
         return torch.mul(gate,x)
