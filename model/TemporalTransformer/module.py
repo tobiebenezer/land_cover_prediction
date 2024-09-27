@@ -121,9 +121,9 @@ class TemporalLayer(nn.Module):
         self.module = module
 
     def forward(self, x):
-        x = rearrange("t n h -> (t n) h",x)
+        x = rearrange(x,"t n h -> (t n) h")
         x = self.module(x)
-        x = rearrange("(t n) h -> t n h", x)
+        x = rearrange(x,"(t n) h -> t n h")
 
         return x
 
