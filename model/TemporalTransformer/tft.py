@@ -77,9 +77,9 @@ class TemporalFusionTransformer(nn.Module):
         x = rearrange(x, "b s n h -> (n s) b h")
         future_size = x.shape[0] * 0.75
         future_size = int(future_size)
-        
-        past_input = x[:, :future_size, :, :]
-        future_input = x[:, future_size:, :, :]
+
+        past_input = x[:, :future_size, :]
+        future_input = x[:, future_size:, :]
         print(x.shape,past_input.shape, future_input.shape,"past and future")
      
         encoder_output, state_h, state_c = self.define_lstm_encoder(past_input, static_context_h, static_context_c)       
