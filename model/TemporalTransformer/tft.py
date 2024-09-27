@@ -76,6 +76,7 @@ class TemporalFusionTransformer(nn.Module):
         b, s ,_ ,_ = x.shape 
         print(context.shape, "context")
         x = rearrange(x, "b s n h -> (b s) n h")
+        print(x.shape, "x")
         future_size = x.shape[0] * 0.75
         future_size = int(future_size)
 
