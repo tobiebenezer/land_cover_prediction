@@ -93,8 +93,10 @@ class TemporalFusionTransformer(nn.Module):
      
         encoder_output, state_h, state_c = self.define_lstm_encoder(past_input, static_context_h, static_context_c)       
         decoder_output = self.define_lstm_decoder(future_input, state_h, state_c)
-        
+        print(encoder_output.shape,"encoder_output")
+        print(decoder_output.shape,"decoder_output")
         lstm_outputs = torch.cat([encoder_output, decoder_output], dim=1)
+        print(lstm_outputs.shape,"lstm_outputs")
          
         lstm_outputs = rearrange(lstm_outputs, "b s (n h) -> b (s n) h", h=self.hidden_size)
         print(lstm_outputs.shape,"lstm_outputs")
