@@ -15,7 +15,7 @@ class TemporalFusionTransformer(nn.Module):
         self.past_size = past_size
         self.output_size = output_size
 
-        self.input_embedding = nn.Linear(input_size, hidden_size)
+        self.input_embedding = nn.Linear(hidden_size, hidden_size)
         self.day_embedding = PositionalEncoder(hidden_size // 2, 1, dropout, max_len=366)
         self.month_embedding = PositionalEncoder(hidden_size // 2, 2, dropout, max_len=12)
         self.encoder_lstm = nn.LSTM(hidden_size, hidden_size, num_layers, dropout=dropout, batch_first=True)
