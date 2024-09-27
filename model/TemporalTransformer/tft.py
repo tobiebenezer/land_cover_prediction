@@ -45,9 +45,9 @@ class TemporalFusionTransformer(nn.Module):
     def define_lstm_encoder(self, x, static_context_h, static_context_c):
         # static_context_h = rearrange(static_context_h, "(s p) n -> s (p n)" , p=self.sequence_length)
         # static_context_c = rearrange(static_context_c, "(s p) n -> s (p n)" , p=self.sequence_length)
-
-        static_context_h = static_context_h[:2,:]
-        static_context_c = static_context_c[:2,:]
+        b, _, _ = x.shape
+        static_context_h = static_context_h[:b,:]
+        static_context_c = static_context_c[:b,:]
 
         output, (state_h, state_c) = self.encoder_lstm(x, (static_context_h.unsqueeze(0).repeat(self.num_layers,1,1),
                              static_context_c.unsqueeze(0).repeat(self.num_layers,1,1)))
