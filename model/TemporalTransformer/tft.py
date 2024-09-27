@@ -81,8 +81,8 @@ class TemporalFusionTransformer(nn.Module):
 
         static_context_e, static_context_h, static_context_c = self.define_static_covariate_encoders(context[:future_size, :, :])
 
-        past_input = rearrange(x[:future_size, :, :], "b s n h -> b s (n h)", b=b)
-        future_input = rearrange(x[future_size:, :, :], "b s n h -> b s (n h)", b=b)
+        past_input = rearrange(x[:future_size, :, :], "(b s) n h -> b s (n h)", b=b)
+        future_input = rearrange(x[future_size:, :, :], "(b s) n h -> b s (n h)", b=b)
         print(x.shape,past_input.shape, future_input.shape,"past and future")
      
         encoder_output, state_h, state_c = self.define_lstm_encoder(past_input, static_context_h, static_context_c)       
