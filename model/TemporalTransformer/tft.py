@@ -99,8 +99,8 @@ class TemporalFusionTransformer(nn.Module):
         lstm_outputs = torch.cat([encoder_output, decoder_output], dim=1)
         print(lstm_outputs.shape,"lstm_outputs")
          
-        lstm_outputs = rearrange(lstm_outputs, "b s (n h) -> b (s n) h", h=self.hidden_size)
-        print(lstm_outputs.shape,"lstm_outputs")
+        # lstm_outputs = rearrange(lstm_outputs, "b s (n h) -> b (s n) h", h=self.hidden_size)
+        # print(lstm_outputs.shape,"lstm_outputs")
         gated_outputs = self.gated_skip_connection(lstm_outputs)
         print(gated_outputs.shape,"gated_outputs")
         print(x.shape,"x")
