@@ -67,18 +67,23 @@ else:
 test_dataset = NDIVIViTDataloader(ndvi_3d,context,sequence_length=16,mode="test",scaler=scaler)
 val_dataset = NDIVIViTDataloader(ndvi_3d,context,sequence_length=16,mode="val",scaler=scaler)
 
-train_dataloader = DataLoader(train_dataset,batch_size=25, shuffle=True,num_workers=2)
-val_dataloader = DataLoader(val_dataset,batch_size=25, shuffle=True,num_workers=2)
-test_dataloader = DataLoader(test_dataset,batch_size=25, shuffle=True,num_workers=2)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='training')
-    parser.add_argument('EPOCHS', type=int, help='number of epochs')
-    parser.add_argument('LR', type=float, help='learning rate')
+    parser.add_argument('--EPOCHS', type=int, help='number of epochs')
+    parser.add_argument('--LR', type=float, help='learning rate')
+    parser.add_argument('--BATCH_SIZE', type=float, help='learning rate')
     args = parser.parse_args()
+
 
     EPOCHS = args.EPOCHS if args.EPOCHS else 1
     LR = args.LR if args.LR else 0.0001
+    BATCH_SIZE = args.BATCH_SIZE if args.BATCH_SIZE else 2
+
+
+    train_dataloader = DataLoader(train_dataset,batch_size=BATCH_SIZE, shuffle=True,num_workers=2)
+    val_dataloader = DataLoader(val_dataset,batch_size=BATCH_SIZE, shuffle=True,num_workers=2)
+    test_dataloader = DataLoader(test_dataset,batch_size=BATCH_SIZE, shuffle=True,num_workers=2)
 
     history,modelencoder = fit(EPOCHS, LR, modelencoder, train_dataloader,val_dataloader)
     
