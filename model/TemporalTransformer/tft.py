@@ -43,14 +43,12 @@ class TemporalFusionTransformer(nn.Module):
 
     # @torch.jit.script
     def define_lstm_encoder(self, x, static_context_h, static_context_c):
-        print(x.shape, "lstm encoder input")
         static_context_h = rearrange(static_context_h, "(s p) n -> s (p n)" , p=self.sequence_length)
         static_context_c = rearrange(static_context_c, "(s p) n -> s (p n)" , p=self.sequence_length)
-        
-        print(static_context_h.shape, "static context")
+
         output, (state_h, state_c) = self.encoder_lstm(x, (static_context_h.unsqueeze(0).repeat(self.num_layers,1,1),
                              static_context_c.unsqueeze(0).repeat(self.num_layers,1,1)))
-        print(output.shape, "lstm encoder output")
+
         return output, state_h, state_c
 
     # @torch.jit.script
@@ -80,9 +78,7 @@ class TemporalFusionTransformer(nn.Module):
     def forward(self, x, context):
         x = self.input_embedding(x)
         b, s ,_ ,_ = x.shape 
-        print(context.shape, "context")
         x = rearrange(x, "b s n h -> (b s) n h")
-        print(x.shape, "x")
         future_size = x.shape[0] * 0.75
         future_size = int(future_size)
         
@@ -90,16 +86,15 @@ class TemporalFusionTransformer(nn.Module):
 
         past_input = rearrange(x[:future_size, :, :], "(b s) n h -> b s (n h)", b=b)
         future_input = rearrange(x[future_size:, :, :], "(b s) n h -> b s (n h)", b=b)
-        print(x.shape,past_input.shape, future_input.shape,"past and future")
      
         encoder_output, state_h, state_c = self.define_lstm_encoder(past_input, static_context_h, static_context_c)       
         decoder_output = self.define_lstm_decoder(future_input, state_h, state_c)
-        print('decoder output')
+       
 
         
         lstm_outputs = torch.cat([encoder_output, decoder_output], dim=1)
         gated_outputs = self.gated_skip_connection(lstm_outputs)
-        # temporal_feature_outputs = self.add_norm(x + gated_outputs)
+        temporal_feature_outputs = self.add_norm(x + gated_outputs)
 
         # static_enrichment_outputs = self.static_enrichment(torch.cat([temporal_feature_outputs, static_context_e.unsqueeze(1).expand(-1, temporal_feature_outputs.size(1), -1)], dim=-1))
 
