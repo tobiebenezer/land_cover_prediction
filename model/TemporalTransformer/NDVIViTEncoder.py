@@ -28,6 +28,7 @@ class NDVIViTEncoder(nn.Module):
         x = self.dropout(x)
         x = self.transformerblock(x)
         x = self.norm(x)
+        x = rearrange(x, '(b s) n d -> b s n d', b=b)
         return x
 
     
