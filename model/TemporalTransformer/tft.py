@@ -29,9 +29,9 @@ class TemporalFusionTransformer(nn.Module):
         self.add_norm = TemporalLayer(nn.BatchNorm1d(hidden_size))
         self.position_wise_feed_forward = GatedResidualNetwork(hidden_size, hidden_size, hidden_size, dropout)
         
-        self.context_grn = GatedResidualNetwork(hidden_size, hidden_size, hidden_size * (patch_size), dropout)
-        self.static_context_state_h = GatedResidualNetwork(hidden_size, hidden_size, hidden_size * (patch_size), dropout, is_temporal=False)
-        self.static_context_state_c = GatedResidualNetwork(hidden_size, hidden_size, hidden_size * (patch_size), dropout, is_temporal=False)
+        self.context_grn = GatedResidualNetwork(hidden_size, hidden_size, hidden_size * (patch_size / sequence_length), dropout)
+        self.static_context_state_h = GatedResidualNetwork(hidden_size, hidden_size, hidden_size * (patch_size / sequence_length), dropout, is_temporal=False)
+        self.static_context_state_c = GatedResidualNetwork(hidden_size, hidden_size, hidden_size * (patch_size/ sequence_length), dropout, is_temporal=False)
         
         self.static_enrichment = GatedResidualNetwork(hidden_size * 2, hidden_size, hidden_size, dropout)
         self.multihead_attn = nn.MultiheadAttention(hidden_size, num_heads, dropout)
