@@ -29,9 +29,9 @@ class TemporalFusionTransformer(nn.Module):
         self.add_norm = TemporalLayer(nn.BatchNorm1d(hidden_size))
         self.position_wise_feed_forward = GatedResidualNetwork(hidden_size, hidden_size, hidden_size, dropout)
         
-        self.context_grn = GatedResidualNetwork(hidden_size, hidden_size, hidden_size * (patch_size / sequence_length), dropout)
-        self.static_context_state_h = GatedResidualNetwork(hidden_size, hidden_size, hidden_size * (patch_size / sequence_length), dropout, is_temporal=False)
-        self.static_context_state_c = GatedResidualNetwork(hidden_size, hidden_size, hidden_size * (patch_size/ sequence_length), dropout, is_temporal=False)
+        self.context_grn = GatedResidualNetwork(hidden_size, hidden_size, hidden_size * (patch_size), dropout)
+        self.static_context_state_h = GatedResidualNetwork(hidden_size, hidden_size, hidden_size * (patch_size), dropout, is_temporal=False)
+        self.static_context_state_c = GatedResidualNetwork(hidden_size, hidden_size, hidden_size * (patch_size), dropout, is_temporal=False)
         
         self.static_enrichment = GatedResidualNetwork(hidden_size * 2, hidden_size, hidden_size, dropout)
         self.multihead_attn = nn.MultiheadAttention(hidden_size, num_heads, dropout)
@@ -82,8 +82,9 @@ class TemporalFusionTransformer(nn.Module):
         future_size = x.shape[0] * 0.75
         future_size = int(future_size)
         
+        print(context.shape)
         static_context_e, static_context_h, static_context_c = self.define_static_covariate_encoders(context)
-
+        
         past_input = rearrange(x[:future_size, :, :], "(b s) n h -> b s (n h)", b=b)
         future_input = rearrange(x[future_size:, :, :], "(b s) n h -> b s (n h)", b=b)
      
