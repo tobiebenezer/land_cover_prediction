@@ -6,7 +6,7 @@ import einops
 from model.TemporalTransformer.module import *
 
 class TemporalFusionTransformer(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size, num_heads, dropout, num_layers=1, past_size=10, patch_size=25):
+    def __init__(self, input_size, hidden_size, output_size, num_heads, dropout, num_layers=1, past_size=10, patch_size=25, sequence_length=12):
         super(TemporalFusionTransformer, self).__init__()
         self.hidden_size = hidden_size
         self.num_heads = num_heads
@@ -14,12 +14,14 @@ class TemporalFusionTransformer(nn.Module):
         self.num_layers = num_layers
         self.past_size = past_size
         self.output_size = output_size
+        self.patch_size = patch_size
+        self.sequence_length = sequence_length
 
         self.input_embedding = nn.Linear(hidden_size, hidden_size)
         self.day_embedding = PositionalEncoder(hidden_size // 2, 1, dropout, max_len=366)
         self.month_embedding = PositionalEncoder(hidden_size // 2, 2, dropout, max_len=12)
-        self.encoder_lstm = nn.LSTM(hidden_size * (patch_size + 1), hidden_size, num_layers, dropout=dropout, batch_first=True)
-        self.decoder_lstm = nn.LSTM(hidden_size * (patch_size + 1), hidden_size, num_layers, dropout=dropout, batch_first=True)
+        self.encoder_lstm = nn.LSTM(hidden_size * (patch_size + 1), hidden_size * sequence_length, num_layers, dropout=dropout, batch_first=True)
+        self.decoder_lstm = nn.LSTM(hidden_size * (patch_size + 1), hidden_size * sequence_length, num_layers, dropout=dropout, batch_first=True)
         self.temporal_grn = GatedResidualNetwork(hidden_size * 2, hidden_size, hidden_size, dropout)
         self.final_grn = GatedResidualNetwork(hidden_size, hidden_size, output_size, dropout)
 
@@ -42,9 +44,12 @@ class TemporalFusionTransformer(nn.Module):
     # @torch.jit.script
     def define_lstm_encoder(self, x, static_context_h, static_context_c):
         print(x.shape, "lstm encoder input")
+        static_context_h = rearrange(static_context_h.unsqueeze(0).repeat(self.num_layers,1,1), "b s n -> b (s n)" , s=self.sequence_length)
+        static_context_h = rearrange(static_context_c.unsqueeze(0).repeat(self.num_layers,1,1), "b s n -> b (s n)" , s=self.sequence_length)
+        
         print(static_context_h.unsqueeze(0).repeat(self.num_layers,1,1).shape, "static context")
-        output, (state_h, state_c) = self.encoder_lstm(x, (static_context_h.unsqueeze(0).repeat(self.num_layers,1,1), 
-                                                        static_context_c.unsqueeze(0).repeat(self.num_layers,1,1)))
+        output, (state_h, state_c) = self.encoder_lstm(x, (static_context_h, static_context_c))
+        print(output.shape, "lstm encoder output")
         return output, state_h, state_c
 
     # @torch.jit.script
@@ -79,7 +84,7 @@ class TemporalFusionTransformer(nn.Module):
         print(x.shape, "x")
         future_size = x.shape[0] * 0.75
         future_size = int(future_size)
-
+        
         static_context_e, static_context_h, static_context_c = self.define_static_covariate_encoders(context)
 
         past_input = rearrange(x[:future_size, :, :], "(b s) n h -> b s (n h)", b=b)
