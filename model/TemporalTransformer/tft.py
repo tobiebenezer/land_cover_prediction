@@ -107,25 +107,26 @@ class TemporalFusionTransformer(nn.Module):
         print(x.shape,"x")
         temporal_feature_outputs = self.add_norm(x[:,:-1,:] + gated_outputs)
 
-        static_context_e_reshaped = rearrange(static_context_e, "b (s h) -> b s h", s=gated_outputs.shape[1] ) #.reshape(24, 25, 128)
+        static_context_e_reshaped = rearrange(static_context_e, "b (s h) -> b s h", s=gated_outputs.shape[1] ) #.reshape(batch x sequence, patch, hidden)
         static_enrichment_outputs = self.static_enrichment(torch.cat([temporal_feature_outputs, static_context_e_reshaped], dim=-1))
 
         mask = self.get_mask(static_enrichment_outputs)
         multihead_outputs, multihead_attention = self.multihead_attn(static_enrichment_outputs, static_enrichment_outputs, static_enrichment_outputs, attn_mask=mask)
-        multihead_outputs = rearrange(multihead_outputs, "(b s) h -> b s h", s=gated_outputs.shape[1]) #.reshape(24, 25, 128)
+        multihead_outputs = rearrange(multihead_outputs, "(b s) h -> b s h", s=gated_outputs.shape[1]) #.reshape(batch x sequence, patch, hidden)
         print(multihead_outputs.shape,"multihead_outputs")
         print(multihead_attention.shape,"multihead_attention")
 
-        static_enrichment_outputs = rearrange(static_enrichment_outputs, "(b s) h -> b s h", s=gated_outputs.shape[1])
+        static_enrichment_outputs = rearrange(static_enrichment_outputs, "(b s) h -> b s h", s=gated_outputs.shape[1]) #.reshape(batch x sequence, patch, hidden)
         attention_gated_outputs = self.attention_gated_skip_connection(multihead_outputs)
         attention_outputs = self.attention_add_norm(attention_gated_outputs + static_enrichment_outputs)
         print(attention_outputs.shape,"attention_outputs")
 
         temporal_fusion_decoder_outputs = self.position_wise_feed_forward(attention_outputs)
+        temporal_feature_decoder_outputs = arrange(temporal_fussion_decoder_outputs, "(b s)  h -> b s h", s=gated_outputs.shape[1]) #.reshape(batch x sequence, patch, hidden)
         print(temporal_fusion_decoder_outputs.shape,"temporal_fusion_decoder_outputs")
 
-        # gate_outputs = self.output_gated_skip_connection(temporal_fusion_decoder_outputs)
-        # norm_outputs = self.output_add_norm(gate_outputs + temporal_feature_outputs)
+        gate_outputs = self.output_gated_skip_connection(temporal_fusion_decoder_outputs)
+        norm_outputs = self.output_add_norm(gate_outputs + temporal_feature_outputs)
 
         # output = self.output(norm_outputs[:, self.past_size:, :]).view(-1, self.output_size)
         
