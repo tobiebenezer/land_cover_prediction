@@ -20,8 +20,8 @@ class TemporalFusionTransformer(nn.Module):
         self.input_embedding = nn.Linear(hidden_size, hidden_size)
         self.day_embedding = PositionalEncoder(hidden_size // 2, 1, dropout, max_len=366)
         self.month_embedding = PositionalEncoder(hidden_size // 2, 2, dropout, max_len=12)
-        self.encoder_lstm = nn.LSTM(hidden_size * (patch_size + 1), hidden_size * sequence_length, num_layers, dropout=dropout, batch_first=True)
-        self.decoder_lstm = nn.LSTM(hidden_size * (patch_size + 1), hidden_size * sequence_length, num_layers, dropout=dropout, batch_first=True)
+        self.encoder_lstm = nn.LSTM(hidden_size * (patch_size + 1), hidden_size * (patch_size ), num_layers, dropout=dropout, batch_first=True)
+        self.decoder_lstm = nn.LSTM(hidden_size * (patch_size + 1), hidden_size * (patch_size), num_layers, dropout=dropout, batch_first=True)
         self.temporal_grn = GatedResidualNetwork(hidden_size * 2, hidden_size, hidden_size, dropout)
         self.final_grn = GatedResidualNetwork(hidden_size, hidden_size, output_size, dropout)
 
@@ -29,9 +29,9 @@ class TemporalFusionTransformer(nn.Module):
         self.add_norm = TemporalLayer(nn.BatchNorm1d(hidden_size))
         self.position_wise_feed_forward = GatedResidualNetwork(hidden_size, hidden_size, hidden_size, dropout)
         
-        self.context_grn = GatedResidualNetwork(hidden_size, hidden_size, hidden_size, dropout)
-        self.static_context_state_h = GatedResidualNetwork(hidden_size, hidden_size, hidden_size, dropout, is_temporal=False)
-        self.static_context_state_c = GatedResidualNetwork(hidden_size, hidden_size, hidden_size, dropout, is_temporal=False)
+        self.context_grn = GatedResidualNetwork(hidden_size, hidden_size, hidden_size * (patch_size), dropout)
+        self.static_context_state_h = GatedResidualNetwork(hidden_size, hidden_size, hidden_size * (patch_size), dropout, is_temporal=False)
+        self.static_context_state_c = GatedResidualNetwork(hidden_size, hidden_size, hidden_size * (patch_size), dropout, is_temporal=False)
         
         self.static_enrichment = GatedResidualNetwork(hidden_size * 2, hidden_size, hidden_size, dropout)
         self.multihead_attn = nn.MultiheadAttention(hidden_size, num_heads, dropout)
