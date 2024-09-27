@@ -6,7 +6,7 @@ import einops
 from model.TemporalTransformer.module import *
 
 class TemporalFusionTransformer(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size, num_heads, dropout, num_layers=1, past_size=10):
+    def __init__(self, input_size, hidden_size, output_size, num_heads, dropout, num_layers=1, past_size=10,patch_size=25):
         super(TemporalFusionTransformer, self).__init__()
         self.hidden_size = hidden_size
         self.num_heads = num_heads
@@ -18,8 +18,8 @@ class TemporalFusionTransformer(nn.Module):
         self.input_embedding = nn.Linear(hidden_size, hidden_size)
         self.day_embedding = PositionalEncoder(hidden_size // 2, 1, dropout, max_len=366)
         self.month_embedding = PositionalEncoder(hidden_size // 2, 2, dropout, max_len=12)
-        self.encoder_lstm = nn.LSTM(hidden_size, hidden_size, num_layers, dropout=dropout, batch_first=True)
-        self.decoder_lstm = nn.LSTM(hidden_size, hidden_size, num_layers, dropout=dropout, batch_first=True)
+        self.encoder_lstm = nn.LSTM(hidden_size * patch_size, hidden_size, num_layers, dropout=dropout, batch_first=True)
+        self.decoder_lstm = nn.LSTM(hidden_size * patch_size, hidden_size, num_layers, dropout=dropout, batch_first=True)
         self.temporal_grn = GatedResidualNetwork(hidden_size * 2, hidden_size, hidden_size, dropout)
         self.final_grn = GatedResidualNetwork(hidden_size, hidden_size, output_size, dropout)
 
@@ -42,9 +42,12 @@ class TemporalFusionTransformer(nn.Module):
     # @torch.jit.script
     def define_lstm_encoder(self, x, static_context_h, static_context_c):
         print(x.shape, "lstm encoder input")
-        print(static_context_h.unsqueeze(0).repeat(self.num_layers,1,1).shape, "static context")
+        print(static_context_h.unsqueeze(0).repea           
+    # @torch.jit.script
+    def define_lstm_encoder(self, x, static_context_h, static_context_c):
+        print(x.shape, "lstm encoder input")t(sel         f.num_layers,1,1).shape, "static context")
         output, (state_h, state_c) = self.encoder_lstm(x, (static_context_h.unsqueeze(0).repeat(self.num_layers,1,1), 
-                                                        static_context_c.unsqueeze(0).repeat(self.num_layers,1,1)))
+                                                        static_context_c.unsqueeze(0).repeat(seLSTM                        lf.num_layers,1,1)))
         return output, state_h, state_c
 
     # @torch.jit.script
