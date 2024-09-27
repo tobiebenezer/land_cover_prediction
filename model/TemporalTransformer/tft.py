@@ -18,8 +18,8 @@ class TemporalFusionTransformer(nn.Module):
         self.input_embedding = nn.Linear(hidden_size, hidden_size)
         self.day_embedding = PositionalEncoder(hidden_size // 2, 1, dropout, max_len=366)
         self.month_embedding = PositionalEncoder(hidden_size // 2, 2, dropout, max_len=12)
-        self.encoder_lstm = nn.LSTM(hidden_size * patch_size, hidden_size, num_layers, dropout=dropout, batch_first=True)
-        self.decoder_lstm = nn.LSTM(hidden_size * patch_size, hidden_size, num_layers, dropout=dropout, batch_first=True)
+        self.encoder_lstm = nn.LSTM((hidden_size + 1) * patch_size, hidden_size, num_layers, dropout=dropout, batch_first=True)
+        self.decoder_lstm = nn.LSTM((hidden_size + 1) * patch_size, hidden_size, num_layers, dropout=dropout, batch_first=True)
         self.temporal_grn = GatedResidualNetwork(hidden_size * 2, hidden_size, hidden_size, dropout)
         self.final_grn = GatedResidualNetwork(hidden_size, hidden_size, output_size, dropout)
 
