@@ -113,7 +113,7 @@ class TemporalFusionTransformer(nn.Module):
         mask = self.get_mask(static_enrichment_outputs)
         multihead_outputs, multihead_attention = self.multihead_attn(static_enrichment_outputs, static_enrichment_outputs, static_enrichment_outputs, attn_mask=mask)
         
-        # attention_gated_outputs = self.attention_gated_skip_connection(multihead_outputs)
+        attention_gated_outputs = self.attention_gated_skip_connection(multihead_outputs)
         # attention_outputs = self.attention_add_norm(attention_gated_outputs + static_enrichment_outputs)
 
         # temporal_fusion_decoder_outputs = self.position_wise_feed_forward(attention_outputs)
