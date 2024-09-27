@@ -53,8 +53,10 @@ class TemporalFusionTransformer(nn.Module):
 
     # @torch.jit.script
     def define_lstm_decoder(self, x, state_h, state_c):
-        output, (_, _) = self.decoder_lstm(x, (state_h, state_c))
-      
+        output, (w, y) = self.decoder_lstm(x, (state_h, state_c))
+        print(output.shape, 'output')
+        print(w.shape,'w')
+        print(y.shape, 'y')
         return output
 
     def define_static_covariate_encoders(self, context):
@@ -95,7 +97,7 @@ class TemporalFusionTransformer(nn.Module):
         lstm_outputs = torch.cat([encoder_output, decoder_output], dim=1)
         print("lstm_outputs")
         print(lstm_outputs.shape)  
-        lstm_outputs = rearrange(lstm_outputs, "b s (n h) -> b s n h", h=self.hidden_size)
+        # lstm_outputs = rearrange(lstm_outputs, "b s (n h) -> b s n h", h=self.hidden_size)
         print(lstm_outputs.shape)
 
         # gated_outputs = self.gated_skip_connection(lstm_outputs)
