@@ -46,7 +46,7 @@ class NDVIViTFT(MBase):
         encoded_output = self.encoder(x)
         temporal_output = self.tft(encoded_output, context)
         
-        return x # temporal_output
+        return temporal_output
 
     def training_step(self,batch):
         X, context, (y ,_)= batch

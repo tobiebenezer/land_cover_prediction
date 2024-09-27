@@ -79,14 +79,16 @@ class TemporalFusionTransformer(nn.Module):
         return torch.triu(torch.ones(tensor.size(0), tensor.size(0)), diagonal=1).bool().to(tensor.device)
 
     def forward(self, x, context):
-        print(x.shape,"x")
+        # print(x.shape,"x")
+        
         x = self.input_embedding(x)
         b, s ,_ ,_ = x.shape 
         x = rearrange(x, "b s n h -> (b s) n h")
         future_size = x.shape[0] * 0.75
         future_size = int(future_size)
         
-        print(context.shape)
+        # print(context.shape)
+        
         static_context_e, static_context_h, static_context_c = self.define_static_covariate_encoders(context)
         
         past_input = rearrange(x[:future_size, :, :], "(b s) n h -> b s (n h)", b=b)
@@ -94,17 +96,24 @@ class TemporalFusionTransformer(nn.Module):
      
         encoder_output, state_h, state_c = self.define_lstm_encoder(past_input, static_context_h, static_context_c)       
         decoder_output = self.define_lstm_decoder(future_input, state_h, state_c)
-        print(encoder_output.shape,"encoder_output")
-        print(decoder_output.shape,"decoder_output")
+        
+        # print(encoder_output.shape,"encoder_output")
+        # print(decoder_output.shape,"decoder_output")
+        
         lstm_outputs = torch.cat([encoder_output, decoder_output], dim=1)
-        print(lstm_outputs.shape,"lstm_outputs")
+        
+        # print(lstm_outputs.shape,"lstm_outputs")
          
         lstm_outputs = rearrange(lstm_outputs, "b s (n h) -> b (s n) h", h=self.hidden_size)
-        print(lstm_outputs.shape,"lstm_outputs")
+        
+        # print(lstm_outputs.shape,"lstm_outputs")
+        
         gated_outputs = self.gated_skip_connection(lstm_outputs)
         gated_outputs = rearrange(gated_outputs, "b (s n) h -> (b s) n h", s=s)
-        print(gated_outputs.shape,"gated_outputs")
-        print(x.shape,"x")
+        
+        # print(gated_outputs.shape,"gated_outputs")
+        # print(x.shape,"x")
+       
         temporal_feature_outputs = self.add_norm(x[:,:-1,:] + gated_outputs)
 
         static_context_e_reshaped = rearrange(static_context_e, "b (s h) -> b s h", s=gated_outputs.shape[1] ) #.reshape(batch x sequence, patch, hidden)
@@ -113,28 +122,34 @@ class TemporalFusionTransformer(nn.Module):
         mask = self.get_mask(static_enrichment_outputs)
         multihead_outputs, multihead_attention = self.multihead_attn(static_enrichment_outputs, static_enrichment_outputs, static_enrichment_outputs, attn_mask=mask)
         multihead_outputs = rearrange(multihead_outputs, "(b s) h -> b s h", s=gated_outputs.shape[1]) #.reshape(batch x sequence, patch, hidden)
-        print(multihead_outputs.shape,"multihead_outputs")
-        print(multihead_attention.shape,"multihead_attention")
+        
+        # print(multihead_outputs.shape,"multihead_outputs")
+        # print(multihead_attention.shape,"multihead_attention")
 
         static_enrichment_outputs = rearrange(static_enrichment_outputs, "(b s) h -> b s h", s=gated_outputs.shape[1]) #.reshape(batch x sequence, patch, hidden)
         attention_gated_outputs = self.attention_gated_skip_connection(multihead_outputs)
         attention_outputs = self.attention_add_norm(attention_gated_outputs + static_enrichment_outputs)
-        print(attention_outputs.shape,"attention_outputs")
+        
+        # print(attention_outputs.shape,"attention_outputs")
 
         temporal_fusion_decoder_outputs = self.position_wise_feed_forward(attention_outputs)
         temporal_fusion_decoder_outputs = rearrange(temporal_fusion_decoder_outputs, "(b s)  h -> b s h", s=gated_outputs.shape[1]) #.reshape(batch x sequence, patch, hidden)
-        print(temporal_fusion_decoder_outputs.shape,"temporal_fusion_decoder_outputs")
+        
+        # print(temporal_fusion_decoder_outputs.shape,"temporal_fusion_decoder_outputs")
 
         gate_outputs = self.output_gated_skip_connection(temporal_fusion_decoder_outputs)
         norm_outputs = self.output_add_norm(gate_outputs + temporal_feature_outputs)
-        print(norm_outputs.shape,"norm_outputs")
-        print(norm_outputs[self.past_size:,:, :].shape,"norm_outputs",future_size)
-        # output = self.output(norm_outputs[:, self.past_size:, :]).view(-1, self.output_size)
+
+        # print(norm_outputs.shape,"norm_outputs")
+        # print(norm_outputs[self.past_size:,:, :].shape,"norm_outputs",future_size)
+
         output = self.output(norm_outputs[ self.past_size:,:, :]).view(-1, self.output_size)
-        print(output.shape,"output")
+        
+        # print(output.shape,"output")
+        
         attention_weights = {
             'multihead_attention': multihead_attention,
         }
 
         return output, attention_weights
-        return x
+       
