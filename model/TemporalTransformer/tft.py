@@ -107,6 +107,9 @@ class TemporalFusionTransformer(nn.Module):
         print(x.shape,"x")
         temporal_feature_outputs = self.add_norm(x[:,:-1,:] + gated_outputs)
 
+        stactic_er = torch.cat([temporal_feature_outputs, static_context_e.unsqueeze(1).expand(-1, temporal_feature_outputs.size(1), -1)])
+        print(stactic_er.shape,"stactic_er")
+
         static_enrichment_outputs = self.static_enrichment(torch.cat([temporal_feature_outputs, static_context_e.unsqueeze(1).expand(-1, temporal_feature_outputs.size(1), -1)], dim=-1))
 
         # mask = self.get_mask(static_enrichment_outputs)
