@@ -79,6 +79,7 @@ class TemporalFusionTransformer(nn.Module):
         return torch.triu(torch.ones(tensor.size(0), tensor.size(0)), diagonal=1).bool().to(tensor.device)
 
     def forward(self, x, context):
+        print(x.shape,"x")
         x = self.input_embedding(x)
         b, s ,_ ,_ = x.shape 
         x = rearrange(x, "b s n h -> (b s) n h")
