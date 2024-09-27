@@ -93,10 +93,13 @@ class TemporalFusionTransformer(nn.Module):
 
         
         lstm_outputs = torch.cat([encoder_output, decoder_output], dim=1)
+        print("lstm_outputs")
+        print(lstm_outputs.shape)  
         lstm_outputs = rearrange(lstm_outputs, "b s (n h) -> b s n h", h=self.hidden_size)
-        
-        gated_outputs = self.gated_skip_connection(lstm_outputs)
-        temporal_feature_outputs = self.add_norm(x + gated_outputs)
+        print(lstm_outputs.shape)
+
+        # gated_outputs = self.gated_skip_connection(lstm_outputs)
+        # temporal_feature_outputs = self.add_norm(x + gated_outputs)
 
         # static_enrichment_outputs = self.static_enrichment(torch.cat([temporal_feature_outputs, static_context_e.unsqueeze(1).expand(-1, temporal_feature_outputs.size(1), -1)], dim=-1))
 
