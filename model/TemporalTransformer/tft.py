@@ -112,6 +112,7 @@ class TemporalFusionTransformer(nn.Module):
 
         mask = self.get_mask(static_enrichment_outputs)
         multihead_outputs, multihead_attention = self.multihead_attn(static_enrichment_outputs, static_enrichment_outputs, static_enrichment_outputs, attn_mask=mask)
+        multihead_outputs = rearrange(multihead_outputs, "b (s h) -> b s h", s=gated_outputs.shape[1])
         print(multihead_outputs.shape,"multihead_outputs")
         print(multihead_attention.shape,"multihead_attention")
         
@@ -131,7 +132,6 @@ class TemporalFusionTransformer(nn.Module):
         # print(multihead_outputs.shape,"multihead_outputs")
         # print(multihead_attention.shape,"multihead_attention")
         
-        # multihead_outputs = rearrange(multihead_outputs, "b s (n h) -> b (s n) h", h=self.hidden_size)
         # print(multihead_outputs.shape,"multihead_outputs")
         # gated_outputs = self.gated_skip_connection(multihead_outputs)
         # gated_outputs = rearrange(gated)
