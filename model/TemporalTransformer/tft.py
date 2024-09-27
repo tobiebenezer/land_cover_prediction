@@ -44,8 +44,8 @@ class TemporalFusionTransformer(nn.Module):
     # @torch.jit.script
     def define_lstm_encoder(self, x, static_context_h, static_context_c):
         print(x.shape, "lstm encoder input")
-        static_context_h = rearrange(static_context_h, "b (s p) n -> b s (p n)" , p=self.sequence_length)
-        static_context_h = rearrange(static_context_c, "b (s p) n -> b s (p n)" , p=self.sequence_length)
+        static_context_h = rearrange(static_context_h, "(s p) n -> s (p n)" , p=self.sequence_length)
+        static_context_h = rearrange(static_context_c, "(s p) n -> s (p n)" , p=self.sequence_length)
         
         print(static_context_h.shape, "static context")
         output, (state_h, state_c) = self.encoder_lstm(x, (static_context_h.unsqueeze(0).repeat(self.num_layers,1,1),
