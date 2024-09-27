@@ -107,8 +107,8 @@ class TemporalFusionTransformer(nn.Module):
         print(x.shape,"x")
         temporal_feature_outputs = self.add_norm(x[:,:-1,:] + gated_outputs)
 
-        static_context_e_reshaped = rearrange(static_context_e, "b (s h) -> (b s) h", s=gated_outputs.shape[1] ) #.reshape(24, 25, 128)
-        static_er = torch.cat([temporal_feature_outputs, static_context_e_reshaped.unsqueeze(1).repeat(1, temporal_feature_outputs.shape[1], 1)], dim=2)
+        static_context_e_reshaped = rearrange(static_context_e, "b (s h) -> b s h", s=gated_outputs.shape[1] ) #.reshape(24, 25, 128)
+        static_er = torch.cat([temporal_feature_outputs, static_context_e_reshaped], dim=2)
         print(static_er.shape,"static_er")
 
         # stactic_er = torch.cat([temporal_feature_outputs, static_context_e.unsqueeze(1).expand(-1, temporal_feature_outputs.size(1), -1)])
