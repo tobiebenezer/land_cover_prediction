@@ -43,8 +43,8 @@ class TemporalFusionTransformer(nn.Module):
 
     # @torch.jit.script
     def define_lstm_encoder(self, x, static_context_h, static_context_c):
-        static_context_h = rearrange(static_context_h, "(s p) n -> s (p n)" , p=self.sequence_length)
-        static_context_c = rearrange(static_context_c, "(s p) n -> s (p n)" , p=self.sequence_length)
+        # static_context_h = rearrange(static_context_h, "(s p) n -> s p n" , p=self.sequence_length)
+        # static_context_c = rearrange(static_context_c, "(s p) n -> s p n" , p=self.sequence_length)
 
         output, (state_h, state_c) = self.encoder_lstm(x, (static_context_h.unsqueeze(0).repeat(self.num_layers,1,1),
                              static_context_c.unsqueeze(0).repeat(self.num_layers,1,1)))
@@ -89,7 +89,7 @@ class TemporalFusionTransformer(nn.Module):
         past_input = rearrange(x[:future_size, :, :], "(b s) n h -> b s (n h)", b=b)
         future_input = rearrange(x[future_size:, :, :], "(b s) n h -> b s (n h)", b=b)
      
-        # encoder_output, state_h, state_c = self.define_lstm_encoder(past_input, static_context_h, static_context_c)       
+        encoder_output, state_h, state_c = self.define_lstm_encoder(past_input, static_context_h, static_context_c)       
         # decoder_output = self.define_lstm_decoder(future_input, state_h, state_c)
         # print(encoder_output.shape,'encoder')
         # print(decoder_output.shape, 'decoder')
