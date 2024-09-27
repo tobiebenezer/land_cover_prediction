@@ -7,7 +7,7 @@ from einops import rearrange
 import joblib
 
 class NDIVIViTDataloader(Dataset):
-    def __init__(self, data,context,sequence_length = 10, img_size=(64,64),mode='train', scaler=None):
+    def __init__(self, data,context,sequence_length = 16, img_size=(64,64),mode='train', scaler=None):
 
         T, P, H, W = data.shape
         self.img_size = img_size
