@@ -29,9 +29,9 @@ class TemporalFusionTransformer(nn.Module):
         self.add_norm = TemporalLayer(nn.BatchNorm1d(hidden_size))
         self.position_wise_feed_forward = GatedResidualNetwork(hidden_size, hidden_size, hidden_size, dropout)
         
-        self.context_grn = GatedResidualNetwork(hidden_size, hidden_size, hidden_size * (patch_size), dropout)
-        self.static_context_state_h = GatedResidualNetwork(hidden_size, hidden_size, hidden_size * (patch_size), dropout, is_temporal=False)
-        self.static_context_state_c = GatedResidualNetwork(hidden_size, hidden_size, hidden_size * (patch_size), dropout, is_temporal=False)
+        self.context_grn = GatedResidualNetwork(hidden_size, hidden_size, (hidden_size * patch_size) - 2, dropout)
+        self.static_context_state_h = GatedResidualNetwork(hidden_size, hidden_size, (hidden_size * patch_size) - 2 , dropout, is_temporal=False)
+        self.static_context_state_c = GatedResidualNetwork(hidden_size, hidden_size, (hidden_size * patch_size) - 2, dropout, is_temporal=False)
         
         self.static_enrichment = GatedResidualNetwork(hidden_size * 2, hidden_size, hidden_size, dropout)
         self.multihead_attn = nn.MultiheadAttention(hidden_size, num_heads, dropout)
@@ -43,8 +43,8 @@ class TemporalFusionTransformer(nn.Module):
 
     # @torch.jit.script
     def define_lstm_encoder(self, x, static_context_h, static_context_c):
-        static_context_h = rearrange(static_context_h, "(s p) n -> s p n" , p=self.sequence_length)
-        static_context_c = rearrange(static_context_c, "(s p) n -> s p n" , p=self.sequence_length)
+        static_context_h = rearrange(static_context_h, "(s p) n -> s (p n)" , p=2)
+        static_context_c = rearrange(static_context_c, "(s p) n -> s (p n)" , p=2)
 
         output, (state_h, state_c) = self.encoder_lstm(x, (static_context_h.repeat(self.num_layers,1,1),
                              static_context_c.repeat(self.num_layers,1,1)))
