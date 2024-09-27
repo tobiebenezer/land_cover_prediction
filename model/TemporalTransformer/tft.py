@@ -48,7 +48,7 @@ class TemporalFusionTransformer(nn.Module):
     # @torch.jit.script
     def define_lstm_decoder(self, x, state_h, state_c):
         output, (_, _) = self.decoder_lstm(x, (state_h, state_c))
-        print("lstm")
+      
         return output
 
     def define_static_covariate_encoders(self, context):
@@ -75,7 +75,7 @@ class TemporalFusionTransformer(nn.Module):
         
         past_input = x[:, :self.past_size]
         future_input = x[:, self.past_size:]
-        print(past_input.shape, future_input.shape,"past and future")
+        print(x.shape,past_input.shape, future_input.shape,"past and future")
      
         encoder_output, state_h, state_c = self.define_lstm_encoder(past_input, static_context_h, static_context_c)       
         decoder_output = self.define_lstm_decoder(future_input, state_h, state_c)
