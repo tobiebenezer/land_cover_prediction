@@ -111,7 +111,7 @@ class TemporalFusionTransformer(nn.Module):
         static_enrichment_outputs = self.static_enrichment(torch.cat([temporal_feature_outputs, static_context_e_reshaped], dim=-1))
 
         mask = self.get_mask(static_enrichment_outputs)
-        # multihead_outputs, multihead_attention = self.multihead_attn(static_enrichment_outputs, static_enrichment_outputs, static_enrichment_outputs, attn_mask=mask)
+        multihead_outputs, multihead_attention = self.multihead_attn(static_enrichment_outputs, static_enrichment_outputs, static_enrichment_outputs, attn_mask=mask)
         
         # attention_gated_outputs = self.attention_gated_skip_connection(multihead_outputs)
         # attention_outputs = self.attention_add_norm(attention_gated_outputs + static_enrichment_outputs)
