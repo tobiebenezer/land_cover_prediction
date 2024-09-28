@@ -30,23 +30,25 @@ class NDVIViTDecoder(nn.Module):
     def forward(self, x):
         # x shape: (batch_size, input_dim)
         batch_size = x.size(0)
-        x = rearrange(x, 'b s p d -> (b s p) d')  
+        x = rearrange(x, 'b s p d -> (b s p) d')
+
         
         # Reshape the input to prepare for deconvolution
         initial_size = self.output_size // (2**self.num_upsample)
         x = self.fc(x)
-        x = x.view(batch_size, 256, initial_size, initial_size)
+        print(x.shape,'x')  
+        # x = x.view(batch_size, 256, initial_size, initial_size)
 
-        # Apply deconvolution layers
-        for i, deconv in enumerate(self.deconv_layers):
-            x = deconv(x)
-            if i < len(self.deconv_layers) - 1:
-                x = F.relu(x)
+        # # Apply deconvolution layers
+        # for i, deconv in enumerate(self.deconv_layers):
+        #     x = deconv(x)
+        #     if i < len(self.deconv_layers) - 1:
+        #         x = F.relu(x)
 
-        # Apply final convolution
-        x = self.final_conv(x)
+        # # Apply final convolution
+        # x = self.final_conv(x)
 
-        x = torch.sigmoid(x)
+        # x = torch.sigmoid(x)
 
         return x
 
