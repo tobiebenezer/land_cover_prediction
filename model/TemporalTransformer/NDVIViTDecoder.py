@@ -29,6 +29,7 @@ from model.TemporalTransformer.module import *
 
 #     def forward(self, x):
 #         # x shape: (batch_size, input_dim)
+#         x = rearrange(x, 'b s p d -> (b p) s d')  
 #         batch_size = x.size(0)
         
 #         # Reshape the input to prepare for deconvolution
@@ -83,7 +84,7 @@ class NDVIViTDecoder(nn.Module):
 
     def forward(self, x):
         # x shape: (batch_size, sequence_length, input_dim)
-        # x = rearrange(x, 'b s d -> (b s) d')
+        x = rearrange(x, 'b s p d -> (b p) s d')
         batch_size, seq_len, _ = x.shape
         
         # Process each timestep
