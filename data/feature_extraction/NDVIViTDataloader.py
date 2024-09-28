@@ -48,8 +48,11 @@ class NDIVIViTDataloader(Dataset):
         context = torch.FloatTensor(self.context[idx: idx+self.sequence_length - self.pred_size]).contiguous()
         
         # Ensure consistent shapes
-        x = x.view(-1, *self.img_size)
-        y = y.view(-1, *self.img_size)
+        # x = x.view(-1, *self.img_size)
+        # y = y.view(-1, *self.img_size)
+        print(x.shape)
+        print(y.shape)
+        print(context.shape)
         
         return x, context, (y, [])
     
