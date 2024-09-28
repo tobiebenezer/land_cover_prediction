@@ -111,5 +111,5 @@ class NDVIViTDecoder(nn.Module):
         
         # Combine all timesteps
         final_output = torch.stack(outputs, dim=1)  # (batch_size, sequence_length, output_channels, output_size, output_size)
-        
+        print(final_output.shape, 'final')
         return final_output
