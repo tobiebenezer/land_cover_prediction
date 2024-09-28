@@ -151,7 +151,7 @@ class TemporalFusionTransformer(nn.Module):
         output = rearrange(output, "(b s p) h -> b s p h", b=b, p=p)
         
         # print(predictionsize,"predictionsize")       
-        # print(output.shape,"output")
+        print(output.shape,"output")
         
         attention_weights = {
             'multihead_attention': multihead_attention,
