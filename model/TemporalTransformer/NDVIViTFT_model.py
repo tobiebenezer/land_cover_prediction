@@ -59,7 +59,7 @@ class NDVIViTFT(MBase):
         temporal_output, attension = self.tft(encoded_output, context)
         output = self.decoder(temporal_output)
         
-        return temporal_output, attension
+        return output, attension
 
     def load_weights(self, encoder_weights, decoder_weights):
         self.encoder.load_state_dict(torch.load(encoder_weights))
