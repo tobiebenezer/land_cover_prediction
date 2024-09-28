@@ -44,7 +44,7 @@ class NDIVIViTDataloader(Dataset):
     
     def __getitem__(self,idx):
         x = torch.FloatTensor(self.ndvi_values[idx: idx+self.sequence_length - self.pred_size])
-        y = torch.FloatTensor(self.ndvi_values[idx+self.sequence_length - self.pred_size : idx+self.sequence_length]).unsqueeze(2)
+        y = torch.FloatTensor(self.ndvi_values[idx+self.sequence_length - self.pred_size : idx+self.sequence_length]).unsqueeze(1)
         context = torch.FloatTensor(self.context[idx: idx+self.sequence_length - self.pred_size])
         
         return x, context,(y,[])
