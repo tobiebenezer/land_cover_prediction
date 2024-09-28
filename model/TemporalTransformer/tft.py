@@ -149,8 +149,8 @@ class TemporalFusionTransformer(nn.Module):
         predictionsize =  int( norm_outputs.shape[0] - (self.pred_size * b))
         output = self.output(norm_outputs[ predictionsize:,:, :]).view(-1, self.output_size)
         
-        print(predictionsize,"predictionsize")       
-        print(output.shape,"output")
+        # print(predictionsize,"predictionsize")       
+        # print(output.shape,"output")
         
         attention_weights = {
             'multihead_attention': multihead_attention,
