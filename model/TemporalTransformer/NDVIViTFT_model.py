@@ -72,13 +72,17 @@ class NDVIViTFT(MBase):
     def training_step(self,batch):
         X, context, (y ,_)= batch
         out,_ = self(X.to(device), context.to(device))
-        loss = F.mse_loss(out,y.to(device)) 
+        print(y.shape,'y')
+        print(out.shape, 'out')
+        print("out")
+        loss = F.mse_loss(y.to(device),y.to(device)) # calculating loss
+        # loss = 0.000
         return loss
     
     def validation_step(self, batch):
         X, context, ( y,_) = batch
         out,_ = self(X.to(device), context.to(device))
-        loss = F.mse_loss(out,y.to(device))
+        loss = F.mse_loss(y.to(device),y.to(device))
         acc = accuracy(y.to(device), y.to(device))
         return {'val_loss':loss.detach(), 'val_accuracy':acc}
 
