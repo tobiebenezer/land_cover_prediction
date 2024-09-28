@@ -42,7 +42,7 @@ class NDVIViTFT(MBase):
                         output_size=output_size, num_heads=num_heads, 
                         dropout=dropout, num_layers=num_layers, past_size=past_size)
 
-        self.decoder = NDVIViTDecoder(input_dim=output_size, output_channels=1, output_size=image_size, num_patches=num_patches)
+        # self.decoder = NDVIViTDecoder(input_dim=output_size, output_channels=1, output_size=image_size, num_patches=num_patches)
 
 
 
@@ -50,7 +50,8 @@ class NDVIViTFT(MBase):
        
         encoded_output = self.encoder(x)
         temporal_output, attension = self.tft(encoded_output, context)
-        output = self.decoder(temporal_output)
+        print(temporal_output.shape,"temporal_output")
+        # output = self.decoder(temporal_output)
         
         return temporal_output, attension
 
