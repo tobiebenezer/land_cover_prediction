@@ -6,7 +6,7 @@ from model.TemporalTransformer.module import *
 from model.TemporalTransformer.NDVIViTEncoder import *
 from model.TemporalTransformer.NDVIViTDecoder import *
 from model.TemporalTransformer.tft import *
-from model.base import MBase
+from model.base import MBase, accuracy
 
 device = (
     "cuda"
