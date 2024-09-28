@@ -75,14 +75,14 @@ class NDVIViTFT(MBase):
         print(y.shape,'y')
         print(out.shape, 'out')
         print("out")
-        # loss = F.mse_loss(y.to(device),y.to(device)) # calculating loss
-        loss = 30.000
+        loss = F.mse_loss(y.to(device),y.to(device)) # calculating loss
+        
         return loss
     
     def validation_step(self, batch):
         X, context, ( y,_) = batch
         out,_ = self(X.to(device), context.to(device))
-        loss = 30 #F.mse_loss(y.to(device),y.to(device))
-        acc = 30 #accuracy(y.to(device), y.to(device))
+        loss = F.mse_loss(y.to(device),y.to(device))
+        acc = accuracy(y.to(device), y.to(device))
         return {'val_loss':loss.detach(), 'val_accuracy':acc}
 
