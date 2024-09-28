@@ -39,7 +39,7 @@ class NDVIViTDecoder(nn.Module):
         for i, deconv in enumerate(self.deconv_layers):
             x = deconv(x)
             if i < len(self.deconv_layers) - 1:
-                x = F.relu(x)
+                x = nn.F.relu(x)
 
         # Apply final convolution
         x = self.final_conv(x)
