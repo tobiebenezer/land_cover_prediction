@@ -156,5 +156,5 @@ class TemporalFusionTransformer(nn.Module):
             'multihead_attention': multihead_attention,
         }
 
-        return output[ predictionsize:,:, :], attention_weights
+        return output[ predictionsize:,:], attention_weights
        
