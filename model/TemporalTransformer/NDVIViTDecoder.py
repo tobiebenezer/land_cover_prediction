@@ -88,22 +88,21 @@ class NDVIViTDecoder(nn.Module):
         batch_size, seq_len, _ = x.shape
         
         # Process each timestep
-        outputs = []
-        for t in range(seq_len):
-            # Reshape the input to prepare for deconvolution
-            h = self.fc(x[:, t])
-            h = self.norm(h)
-            h = h.view(batch_size, self.hidden_dim, int(self.num_patches**0.5), int(self.num_patches**0.5))
+        # outputs = []
+        # for t in range(seq_len):
+        #     # Reshape the input to prepare for deconvolution
+        h = self.fc(x[:, t])
+        h = self.norm(h)
+        h = h.view(batch_size, self.hidden_dim, int(self.num_patches**0.5), int(self.num_patches**0.5))
 
-            # Apply deconvolution layers
-            for deconv in self.deconv_layers:
-                h = deconv(h)
+        # Apply deconvolution layers
+        for deconv in self.deconv_layers:
+            h = deconv(h)
 
-            # Apply final convolution
-            h = self.final_conv(h)
-            h = torch.sigmoid(h)
-            
-            outputs.append(h)
+        # Apply final convolution
+        h = self.final_conv(h)
+        h = torch.sigmoid(h)
+        
 
         # Stack outputs along the sequence dimension
-        return torch.stack(outputs, dim=1)
+        return torch.stack(h, dim=1)
