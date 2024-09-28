@@ -143,11 +143,11 @@ class TemporalFusionTransformer(nn.Module):
         gate_outputs = self.output_gated_skip_connection(temporal_fusion_decoder_outputs)
         norm_outputs = self.output_add_norm(gate_outputs + temporal_feature_outputs)
 
-        # print(norm_outputs.shape,"norm_outputs")
+        print(norm_outputs.shape,"norm_outputs")
         # print(norm_outputs[self.past_size:,:, :].shape,"norm_outputs",future_size)
 
         predictionsize =  int( norm_outputs.shape[0] - (self.pred_size * b))
-        output = self.output(norm_outputs).view(-1, self.output_size)
+        output = self.output(norm_outputs[ predictionsize:,:, :]).view(-1, self.output_size)
         
         print(predictionsize,"predictionsize")       
         print(output.shape,"output")
@@ -156,5 +156,5 @@ class TemporalFusionTransformer(nn.Module):
             'multihead_attention': multihead_attention,
         }
 
-        return output[ predictionsize:,:], attention_weights
+        return output[ predictionsize:,:, :], attention_weights
        
