@@ -95,10 +95,10 @@ class NDIVIViTDataloader(Dataset):
     def _scale_data(self, data):
         T, P, H, W = data.shape
         flat_data = rearrange(data, "T P H W -> (T P) (H W)")
-        if self.scaler.n_samples_seen_ is None:  # If scaler hasn't been fit yet
-            scaled_data = self.scaler.fit_transform(flat_data)
-        else:
-            scaled_data = self.scaler.transform(flat_data)
+        # if self.scaler.n_samples_seen_ is None:  # If scaler hasn't been fit yet
+        scaled_data = self.scaler.fit_transform(flat_data)
+        # else:
+        #     scaled_data = self.scaler.transform(flat_data)
         return rearrange(scaled_data, "(T P) (H W) -> T P H W", T=T, P=P, H=H, W=W)
 
     def __len__(self):
