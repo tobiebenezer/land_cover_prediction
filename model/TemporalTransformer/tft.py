@@ -85,7 +85,7 @@ class TemporalFusionTransformer(nn.Module):
         # print(x.shape,"x")
         
         x = self.input_embedding(x)
-        b, s ,_ ,_ = x.shape 
+        b, s ,p ,_ = x.shape 
         x = rearrange(x, "b s n h -> (b s) n h")
         future_size = x.shape[0] * 0.75
         future_size = int(future_size)
@@ -148,6 +148,7 @@ class TemporalFusionTransformer(nn.Module):
 
         predictionsize =  int( norm_outputs.shape[0] - (self.pred_size * b))
         output = self.output(norm_outputs[ predictionsize:,:, :]).view(-1, self.output_size)
+        output = rearrange(output, "(b s p) h -> b s p h", b=b, s=s, p=p)
         
         # print(predictionsize,"predictionsize")       
         # print(output.shape,"output")
