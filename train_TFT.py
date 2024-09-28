@@ -44,13 +44,13 @@ context = np.load('context.npy')
 
 class Scaler():
     def transform(self,x):
-        return x/10000
+        return x/1000
     
     def fit_transform(self,x):
-        return x/10000
+        return x/1000
 
     def inverse_transform(self,x):
-        return x*10000
+        return x*1000
 
 def custom_collate(batch):
     # Filter out samples with zero-sized y tensors
