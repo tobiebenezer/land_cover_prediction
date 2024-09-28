@@ -34,7 +34,7 @@ class NDIVIViTDataloader(Dataset):
         else:  
             self.ndvi_values = rearrange(data[val_size:],"T P H W -> (T P) (H W)", T=data[val_size:].shape[0], P=P, H=H, W=W)
             self.ndvi_values = self.scaler.transform(self.ndvi_values)
-            self.ndvi_values = rearrange(selffuture_size.ndvi_values,"(T P) (H W) -> T P H W", T=data[val_size:].shape[0], P=P, H=H, W=W)
+            self.ndvi_values = rearrange(self.ndvi_values,"(T P) (H W) -> T P H W", T=data[val_size:].shape[0], P=P, H=H, W=W)
             self.context = context[val_size:]
     
 
@@ -45,7 +45,7 @@ class NDIVIViTDataloader(Dataset):
     def __getitem__(self,idx):
         x = torch.FloatTensor(self.ndvi_values[idx: idx+self.sequence_length - self.pred_size])
         y = torch.FloatTensor(self.ndvi_values[idx+self.sequence_length - self.pred_size : idx+self.sequence_length]).unsqueeze(0)
-        context = torch.FloatTensor(self.context[idx: idx+self.sequence_length - pred_size])
+        context = torch.FloatTensor(self.context[idx: idx+self.sequence_length - self.pred_size])
         
         return x, context,(y,[])
     
