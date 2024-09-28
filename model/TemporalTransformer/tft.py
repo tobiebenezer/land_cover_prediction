@@ -146,7 +146,7 @@ class TemporalFusionTransformer(nn.Module):
         # print(norm_outputs.shape,"norm_outputs")
         # print(norm_outputs[self.past_size:,:, :].shape,"norm_outputs",future_size)
 
-        predictionsize =  int( norm_outputs - (self.pred_size * b))
+        predictionsize =  int( norm_outputs.shape[0] - (self.pred_size * b))
         output = self.output(norm_outputs).view(-1, self.output_size)
         
         print(predictionsize,"predictionsize")       
