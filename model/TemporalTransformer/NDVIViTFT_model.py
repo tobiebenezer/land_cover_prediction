@@ -42,7 +42,7 @@ class NDVIViTFT(MBase):
                         output_size=output_size, num_heads=num_heads, 
                         dropout=dropout, num_layers=num_layers, past_size=past_size)
 
-        self.decoder = NDVIViTDecoder(input_dim=output_size, output_channels=1, output_size=image_size)
+        self.decoder = NDVIViTDecoder(input_dim=output_size, output_channels=1, output_size=image_size, num_patches=num_patches)
 
 
 
