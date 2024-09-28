@@ -108,7 +108,7 @@ class NDVIViTDecoder(nn.Module):
             timestep_output = torch.stack(patch_outputs, dim=1)  # (batch_size, num_patches, output_channels, output_size, output_size)
             timestep_output = rearrange(timestep_output, 'b p c h w -> b c (p h) w')
             outputs.append(timestep_output)
-        print(outputs.shape, 'outputs' )
+        print(outputs[0].shape, 'outputs' )
         # Combine all timesteps
         final_output = torch.stack(outputs, dim=1)  # (batch_size, sequence_length, output_channels, output_size, output_size)
         final_output = rearrange(final_output, 'b s c (p h) w -> b s c p h w', p=self.num_patches)
