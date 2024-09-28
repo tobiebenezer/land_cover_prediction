@@ -1,5 +1,6 @@
 import torch
 from torch import nn, einsum
+import torch.nn.functional as F
 from einops import rearrange,repeat
 from einops.layers.torch import Rearrange
 from model.TemporalTransformer.module import *
@@ -39,7 +40,7 @@ class NDVIViTDecoder(nn.Module):
         for i, deconv in enumerate(self.deconv_layers):
             x = deconv(x)
             if i < len(self.deconv_layers) - 1:
-                x = nn.F.relu(x)
+                x = F.relu(x)
 
         # Apply final convolution
         x = self.final_conv(x)
