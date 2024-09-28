@@ -7,7 +7,7 @@ from model.TemporalTransformer.module import *
 
 class NDVIViTDecoder(nn.Module):
     def __init__(self, input_dim=64, output_channels=1, output_size=64):
-        super(NDVIDecoder, self).__init__()
+        super(NDVIViTDecoder, self).__init__()
         self.input_dim = input_dim
         self.output_size = output_size
 
