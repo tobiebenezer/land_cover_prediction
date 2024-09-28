@@ -91,7 +91,7 @@ class NDVIViTDecoder(nn.Module):
         # outputs = []
         # for t in range(seq_len):
         #     # Reshape the input to prepare for deconvolution
-        h = self.fc(x[:, t])
+        h = self.fc(x)
         h = self.norm(h)
         h = h.view(batch_size, self.hidden_dim, int(self.num_patches**0.5), int(self.num_patches**0.5))
 
