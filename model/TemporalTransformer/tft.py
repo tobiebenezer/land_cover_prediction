@@ -6,7 +6,7 @@ import einops
 from model.TemporalTransformer.module import *
 
 class TemporalFusionTransformer(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size, num_heads, dropout, num_layers=1, past_size=10, patch_size=25, sequence_length=12):
+    def __init__(self, input_size, hidden_size, output_size, num_heads, dropout, num_layers=1, past_size=10, patch_size=25, sequence_length=12,pred_size=4):
         super(TemporalFusionTransformer, self).__init__()
         self.hidden_size = hidden_size
         self.num_heads = num_heads
@@ -16,6 +16,9 @@ class TemporalFusionTransformer(nn.Module):
         self.output_size = output_size
         self.patch_size = patch_size
         self.sequence_length = sequence_length
+        self.pred_size = pred_size
+
+        assert self.past_size < self.sequence_length, "past_size should be less than sequence_length"
 
         self.input_embedding = nn.Linear(hidden_size, hidden_size)
         self.day_embedding = PositionalEncoder(hidden_size // 2, 1, dropout, max_len=366)
@@ -143,10 +146,10 @@ class TemporalFusionTransformer(nn.Module):
         # print(norm_outputs.shape,"norm_outputs")
         # print(norm_outputs[self.past_size:,:, :].shape,"norm_outputs",future_size)
 
+        predictionsize = int(self.pred_size * b)
         print(norm_outputs.shape,"norm_outputs")
-        print(norm_outputs[ self.past_size:,:, :].shape,"norm_outputs",future_size,self.past_size)
-
-        output = self.output(norm_outputs[ self.past_size:,:, :]).view(-1, self.output_size)
+        print(norm_outputs[ predictionsize:,:, :].shape,"norm_outputs",predictionsize,self.past_size)
+        output = self.output(norm_outputs[ predictionsize:,:, :]).view(-1, self.output_size)
         
         # print(output.shape,"output")
         

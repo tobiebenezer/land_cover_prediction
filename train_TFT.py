@@ -37,8 +37,7 @@ patch_size=3,
 in_channel=1,
 
 
-modelencoder = NDVIViTFT()
-modelencoder.to(device)
+
 
 ndvi_3d = np.load('64x64_patches.npy')
 context = np.load('context.npy')
@@ -54,36 +53,47 @@ class Scaler():
         return x*10000
 
 
-if not os.path.exists('scaler.pkl'):
-    train_dataset = NDIVIViTDataloader(ndvi_3d,context,sequence_length=16,mode="train")
-    train_dataset.save_scaler('scaler.pkl')
-    scaler = train_dataset.scaler
-    
-else:
-    # scaler = NDIVIViTDataloader.load_scaler('scaler.pkl')
-    scaler = Scaler()
-    train_dataset = NDIVIViTDataloader(ndvi_3d,context,mode="train",scaler=scaler)
-
-test_dataset = NDIVIViTDataloader(ndvi_3d,context,sequence_length=16,mode="test",scaler=scaler)
-val_dataset = NDIVIViTDataloader(ndvi_3d,context,sequence_length=16,mode="val",scaler=scaler)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='training')
     parser.add_argument('--EPOCHS', type=int, help='number of epochs')
     parser.add_argument('--LR', type=float, help='learning rate')
-    parser.add_argument('--BATCH_SIZE', type=int, help='learning rate')
+    parser.add_argument('--BATCH_SIZE', type=int, help='batch size')
+    parser.add_argument('--SEQ_LEN', type=int, help='sequence length', default=16)
+    parser.add_argument('--PRED_LEN', type=int, help='prediction length', default=4)
+    parser.add_argument('--PAST_LEN', type=int, help='past length', default=10)
     args = parser.parse_args()
 
 
     EPOCHS = args.EPOCHS if args.EPOCHS else 1
     LR = args.LR if args.LR else 0.0001
     BATCH_SIZE = args.BATCH_SIZE if args.BATCH_SIZE else 2
+    SEQ_LEN = args.SEQ_LEN if args.SEQ_LEN else 16
+    PRED_LEN = args.PRED_LEN if args.PRED_LEN else 4
+    PAST_LEN = args.PAST_LEN if args.PAST_LEN else 10
+
+
+    if not os.path.exists('scaler.pkl'):
+        train_dataset = NDIVIViTDataloader(ndvi_3d,context,sequence_length=SEQ_LEN,mode="train")
+        train_dataset.save_scaler('scaler.pkl')
+        scaler = train_dataset.scaler
+        
+    else:
+        # scaler = NDIVIViTDataloader.load_scaler('scaler.pkl')
+        scaler = Scaler()
+        train_dataset = NDIVIViTDataloader(ndvi_3d,context,sequence_length=SEQ_LEN,mode="train",scaler=scaler)
+
+    test_dataset = NDIVIViTDataloader(ndvi_3d,context,sequence_length=SEQ_LEN,mode="test",scaler=scaler)
+    val_dataset = NDIVIViTDataloader(ndvi_3d,context,sequence_length=SEQ_LEN,mode="val",scaler=scaler)
 
 
     train_dataloader = DataLoader(train_dataset,batch_size=BATCH_SIZE, shuffle=True,num_workers=2)
     val_dataloader = DataLoader(val_dataset,batch_size=BATCH_SIZE, shuffle=True,num_workers=2)
     test_dataloader = DataLoader(test_dataset,batch_size=BATCH_SIZE, shuffle=True,num_workers=2)
+
+    modelencoder = NDVIViTFT(pred_size=PRED_LEN,sequence_length=SEQ_LEN)
+    modelencoder.to(device)
 
     history,modelencoder = fit(EPOCHS, LR, modelencoder, train_dataloader,val_dataloader)
     
