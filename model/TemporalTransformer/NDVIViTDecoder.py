@@ -29,8 +29,8 @@ class NDVIViTDecoder(nn.Module):
 
     def forward(self, x):
         # x shape: (batch_size, input_dim)
-        x = rearrange(x, 'b s p d -> (b p) s d')  
         batch_size = x.size(0)
+        x = rearrange(x, 'b s p d -> b s p d')  
         
         # Reshape the input to prepare for deconvolution
         initial_size = self.output_size // (2**self.num_upsample)
