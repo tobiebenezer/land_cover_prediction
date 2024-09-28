@@ -52,7 +52,11 @@ class Scaler():
     def inverse_transform(self,x):
         return x*10000
 
-
+def custom_collate(batch):
+    x = torch.stack([item[0] for item in batch])
+    context = torch.stack([item[1] for item in batch])
+    y = torch.stack([item[2][0] for item in batch])
+    return x, context, (y, [])
 
 
 if __name__ == "__main__":
@@ -75,8 +79,6 @@ if __name__ == "__main__":
     PAST_LEN = args.PAST_LEN if args.PAST_LEN else 10
     NUM_WORKERS = args.NUM_WORKERS if args.NUM_WORKERS else 1
 
-
-
     if not os.path.exists('scaler.pkl'):
         train_dataset = NDIVIViTDataloader(ndvi_3d,context,sequence_length=SEQ_LEN,mode="train")
         train_dataset.save_scaler('scaler.pkl')
@@ -91,9 +93,9 @@ if __name__ == "__main__":
     val_dataset = NDIVIViTDataloader(ndvi_3d,context,sequence_length=SEQ_LEN,mode="val",scaler=scaler)
 
 
-    train_dataloader = DataLoader(train_dataset,batch_size=BATCH_SIZE, shuffle=True,num_workers=NUM_WORKERS)
-    val_dataloader = DataLoader(val_dataset,batch_size=BATCH_SIZE, shuffle=True,num_workers=NUM_WORKERS)
-    test_dataloader = DataLoader(test_dataset,batch_size=BATCH_SIZE, shuffle=True,num_workers=NUM_WORKERS)
+    train_dataloader = DataLoader(train_dataset,batch_size=BATCH_SIZE, shuffle=True,num_workers=NUM_WORKERS,collate_fn=custom_collate)
+    val_dataloader = DataLoader(val_dataset,batch_size=BATCH_SIZE, shuffle=True,num_workers=NUM_WORKERS,collate_fn=custom_collate)
+    test_dataloader = DataLoader(test_dataset,batch_size=BATCH_SIZE, shuffle=True,num_workers=NUM_WORKERS,collate_fn=custom_collate)
 
     modelencoder = NDVIViTFT(pred_size=PRED_LEN,sequence_length=SEQ_LEN)
     modelencoder.to(device)

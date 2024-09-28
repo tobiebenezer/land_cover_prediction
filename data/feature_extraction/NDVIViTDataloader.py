@@ -42,12 +42,16 @@ class NDIVIViTDataloader(Dataset):
     def __len__(self):
         return len(self.ndvi_values)
     
-    def __getitem__(self,idx):
-        x = torch.FloatTensor(self.ndvi_values[idx: idx+self.sequence_length - self.pred_size])
-        y = torch.FloatTensor(self.ndvi_values[idx+self.sequence_length - self.pred_size : idx+self.sequence_length]).unsqueeze(1)
-        context = torch.FloatTensor(self.context[idx: idx+self.sequence_length - self.pred_size])
+    def __getitem__(self, idx):
+        x = torch.FloatTensor(self.ndvi_values[idx: idx+self.sequence_length - self.pred_size]).contiguous()
+        y = torch.FloatTensor(self.ndvi_values[idx+self.sequence_length - self.pred_size : idx+self.sequence_length]).unsqueeze(1).contiguous()
+        context = torch.FloatTensor(self.context[idx: idx+self.sequence_length - self.pred_size]).contiguous()
         
-        return x, context,(y,[])
+        # Ensure consistent shapes
+        x = x.view(-1, *self.img_size)
+        y = y.view(-1, *self.img_size)
+        
+        return x, context, (y, [])
     
     def save_scaler(self, path):
         """Save the scaler to a file."""
