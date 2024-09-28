@@ -63,6 +63,7 @@ if __name__ == "__main__":
     parser.add_argument('--SEQ_LEN', type=int, help='sequence length', default=16)
     parser.add_argument('--PRED_LEN', type=int, help='prediction length', default=4)
     parser.add_argument('--PAST_LEN', type=int, help='past length', default=10)
+    parser.add_argument('--NUM_WORKERS', type=int, help='number of workers',default=1)
     args = parser.parse_args()
 
 
@@ -72,6 +73,8 @@ if __name__ == "__main__":
     SEQ_LEN = args.SEQ_LEN if args.SEQ_LEN else 16
     PRED_LEN = args.PRED_LEN if args.PRED_LEN else 4
     PAST_LEN = args.PAST_LEN if args.PAST_LEN else 10
+    NUM_WORKERS = args.NUM_WORKERS if args.NUM_WORKERS else 1
+
 
 
     if not os.path.exists('scaler.pkl'):
@@ -88,9 +91,9 @@ if __name__ == "__main__":
     val_dataset = NDIVIViTDataloader(ndvi_3d,context,sequence_length=SEQ_LEN,mode="val",scaler=scaler)
 
 
-    train_dataloader = DataLoader(train_dataset,batch_size=BATCH_SIZE, shuffle=True,num_workers=2)
-    val_dataloader = DataLoader(val_dataset,batch_size=BATCH_SIZE, shuffle=True,num_workers=2)
-    test_dataloader = DataLoader(test_dataset,batch_size=BATCH_SIZE, shuffle=True,num_workers=2)
+    train_dataloader = DataLoader(train_dataset,batch_size=BATCH_SIZE, shuffle=True,num_workers=NUM_WORKERS)
+    val_dataloader = DataLoader(val_dataset,batch_size=BATCH_SIZE, shuffle=True,num_workers=NUM_WORKERS)
+    test_dataloader = DataLoader(test_dataset,batch_size=BATCH_SIZE, shuffle=True,num_workers=NUM_WORKERS)
 
     modelencoder = NDVIViTFT(pred_size=PRED_LEN,sequence_length=SEQ_LEN)
     modelencoder.to(device)
