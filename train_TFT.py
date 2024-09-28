@@ -53,9 +53,16 @@ class Scaler():
         return x*10000
 
 def custom_collate(batch):
+    # Filter out samples with zero-sized y tensors
+    batch = [item for item in batch if item[2][0].size(0) > 0]
+    
+    if len(batch) == 0:
+        return None  
+    
     x = torch.stack([item[0] for item in batch])
     context = torch.stack([item[1] for item in batch])
     y = torch.stack([item[2][0] for item in batch])
+    
     return x, context, (y, [])
 
 

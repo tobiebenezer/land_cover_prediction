@@ -50,9 +50,6 @@ class NDIVIViTDataloader(Dataset):
         # Ensure consistent shapes
         # x = x.view(-1, *self.img_size)
         # y = y.view(-1, *self.img_size)
-        print(x.shape)
-        print(y.shape)
-        print(context.shape)
         
         return x, context, (y, [])
     
