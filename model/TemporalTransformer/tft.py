@@ -143,6 +143,9 @@ class TemporalFusionTransformer(nn.Module):
         # print(norm_outputs.shape,"norm_outputs")
         # print(norm_outputs[self.past_size:,:, :].shape,"norm_outputs",future_size)
 
+        print(norm_outputs.shape,"norm_outputs")
+        print(norm_outputs[ self.past_size:,:, :].shape,"norm_outputs",future_size,self.past_size)
+
         output = self.output(norm_outputs[ self.past_size:,:, :]).view(-1, self.output_size)
         
         # print(output.shape,"output")
