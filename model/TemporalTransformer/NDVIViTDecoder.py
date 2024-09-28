@@ -47,3 +47,60 @@ class NDVIViTDecoder(nn.Module):
         x = torch.sigmoid(x)
 
         return x
+
+
+# class NDVIViTDecoder(nn.Module):
+#     def __init__(self, input_dim, hidden_dim, output_channels=1, output_size=64, num_patches=25):
+#         super(NDVIViTDecoder, self).__init__()
+#         self.input_dim = input_dim
+#         self.hidden_dim = hidden_dim
+#         self.output_size = output_size
+#         self.num_patches = num_patches
+
+#         # Adjust the initial size based on the number of patches
+#         self.patch_size = output_size // int(num_patches**0.5)
+#         initial_size = int(num_patches**0.5)
+
+#         self.fc = nn.Linear(input_dim, hidden_dim * num_patches)
+#         self.norm = nn.LayerNorm(hidden_dim)
+
+#         self.deconv_layers = nn.ModuleList()
+#         current_size = initial_size
+#         current_channels = hidden_dim
+
+#         while current_size < output_size:
+#             out_channels = max(current_channels // 2, output_channels)
+#             self.deconv_layers.append(nn.Sequential(
+#                 nn.ConvTranspose2d(current_channels, out_channels, kernel_size=4, stride=2, padding=1),
+#                 nn.BatchNorm2d(out_channels),
+#                 nn.ReLU()
+#             ))
+#             current_channels = out_channels
+#             current_size *= 2
+
+#         self.final_conv = nn.Conv2d(current_channels, output_channels, kernel_size=3, stride=1, padding=1)
+
+#     def forward(self, x):
+#         # x shape: (batch_size, sequence_length, input_dim)
+#         batch_size, seq_len, _ = x.shape
+        
+#         # Process each timestep
+#         outputs = []
+#         for t in range(seq_len):
+#             # Reshape the input to prepare for deconvolution
+#             h = self.fc(x[:, t])
+#             h = self.norm(h)
+#             h = h.view(batch_size, self.hidden_dim, int(self.num_patches**0.5), int(self.num_patches**0.5))
+
+#             # Apply deconvolution layers
+#             for deconv in self.deconv_layers:
+#                 h = deconv(h)
+
+#             # Apply final convolution
+#             h = self.final_conv(h)
+#             h = torch.sigmoid(h)
+            
+#             outputs.append(h)
+
+#         # Stack outputs along the sequence dimension
+#         return torch.stack(outputs, dim=1)

@@ -4,6 +4,7 @@ from einops import rearrange,repeat
 from einops.layers.torch import Rearrange
 from model.TemporalTransformer.module import *
 from model.TemporalTransformer.NDVIViTEncoder import *
+from model.TemporalTransformer.NDVIViTDecoder import *
 from model.TemporalTransformer.tft import *
 from model.base import MBase
 
@@ -41,12 +42,25 @@ class NDVIViTFT(MBase):
                         output_size=output_size, num_heads=num_heads, 
                         dropout=dropout, num_layers=num_layers, past_size=past_size)
 
+        self.decoder = NDVIViTDecoder(input_dim=output_size, output_channels=1, output_size=image_size)
+
+
+
     def forward(self,x, context):
        
         encoded_output = self.encoder(x)
-        temporal_output = self.tft(encoded_output, context)
+        temporal_output, attension = self.tft(encoded_output, context)
+        output = self.decoder(temporal_output)
         
-        return temporal_output
+        return temporal_output, attension
+
+    def load_weights(self, encoder_weights, decoder_weights):
+        self.encoder.load_state_dict(torch.load(encoder_weights))
+        self.decoder.load_state_dict(torch.load(decoder_weights))
+
+    def save_weights(self, encoder_weights, decoder_weights):
+        torch.save(self.encoder.state_dict(), encoder_weights)
+        torch.save(self.decoder.state_dict(), decoder_weights)
 
     def training_step(self,batch):
         X, context, (y ,_)= batch
@@ -63,8 +77,3 @@ class NDVIViTFT(MBase):
         acc = accuracy(y.to(device), y.to(device))
         return {'val_loss':loss.detach(), 'val_accuracy':acc}
 
-# class NDVIViTEncoder(nn.Module):
-    # def __init__(self, image_size=64,passnum_patches=25, patch_size=3, in_channel=1, dim=128, depth=2, heads=8, mlp_ratio=4.):
-# 
-# class TemporalFusionTransformer(nn.Module):
-    # def __init__(self, input_size, hidden_size, output_size, context_size, num_heads, dropout, num_layers=1, past_size=10, future_size=10):
