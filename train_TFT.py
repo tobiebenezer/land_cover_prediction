@@ -100,9 +100,9 @@ if __name__ == "__main__":
     val_dataset = NDIVIViTDataloader(ndvi_3d,context,sequence_length=SEQ_LEN,mode="val",scaler=scaler)
 
 
-    train_dataloader = DataLoader(train_dataset,batch_size=BATCH_SIZE, shuffle=True,num_workers=NUM_WORKERS,collate_fn=custom_collate)
-    val_dataloader = DataLoader(val_dataset,batch_size=BATCH_SIZE, shuffle=True,num_workers=NUM_WORKERS,collate_fn=custom_collate)
-    test_dataloader = DataLoader(test_dataset,batch_size=BATCH_SIZE, shuffle=True,num_workers=NUM_WORKERS,collate_fn=custom_collate)
+    train_dataloader = DataLoader(train_dataset,batch_size=BATCH_SIZE, shuffle=False,num_workers=NUM_WORKERS,collate_fn=custom_collate)
+    val_dataloader = DataLoader(val_dataset,batch_size=BATCH_SIZE, shuffle=False,num_workers=NUM_WORKERS,collate_fn=custom_collate)
+    test_dataloader = DataLoader(test_dataset,batch_size=BATCH_SIZE, shuffle=False,num_workers=NUM_WORKERS,collate_fn=custom_collate)
 
     modelencoder = NDVIViTFT(pred_size=PRED_LEN,sequence_length=SEQ_LEN,dropout=0.3)
     modelencoder.to(device)
