@@ -87,17 +87,17 @@ if __name__ == "__main__":
     NUM_WORKERS = args.NUM_WORKERS if args.NUM_WORKERS else 1
 
     if not os.path.exists('scaler.pkl'):
-        train_dataset = NDIVIViTDataloader(ndvi_3d,context,sequence_length=SEQ_LEN,mode="train")
+        train_dataset = NDIVIViTDataloader(ndvi_3d,context,sequence_length=SEQ_LEN,pred_size=PRED_LEN,mode="train")
         train_dataset.save_scaler('scaler.pkl')
         scaler = train_dataset.scaler
         
     else:
         # scaler = NDIVIViTDataloader.load_scaler('scaler.pkl')
         scaler = Scaler()
-        train_dataset = NDIVIViTDataloader(ndvi_3d,context,sequence_length=SEQ_LEN,mode="train",scaler=scaler)
+        train_dataset = NDIVIViTDataloader(ndvi_3d,context,sequence_length=SEQ_LEN,pred_size=PRED_LEN,mode="train",scaler=scaler)
 
-    test_dataset = NDIVIViTDataloader(ndvi_3d,context,sequence_length=SEQ_LEN,mode="test",scaler=scaler)
-    val_dataset = NDIVIViTDataloader(ndvi_3d,context,sequence_length=SEQ_LEN,mode="val",scaler=scaler)
+    test_dataset = NDIVIViTDataloader(ndvi_3d,context,sequence_length=SEQ_LEN,pred_size=PRED_LEN,mode="test",scaler=scaler)
+    val_dataset = NDIVIViTDataloader(ndvi_3d,context,sequence_length=SEQ_LEN,pred_size=PRED_LEN,mode="val",scaler=scaler)
 
 
     train_dataloader = DataLoader(train_dataset,batch_size=BATCH_SIZE, shuffle=False,num_workers=NUM_WORKERS,collate_fn=custom_collate)
