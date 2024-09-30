@@ -34,7 +34,7 @@ class NDVIViTEncoder(nn.Module):
         return x
 
 class Sen12MSViTEncoder(nn.Module):
-    def __init__(self, patch_size=64, num_patches=25, in_channels=1, dim=256, depth=6, heads=8, mlp_ratio=4.):
+    def __init__(self, image_size=64, num_patches=25, in_channels=1, dim=256, depth=6, heads=8, mlp_ratio=4.):
         super().__init__()
         
         # Lightweight feature extractor (modified ResNet18)
