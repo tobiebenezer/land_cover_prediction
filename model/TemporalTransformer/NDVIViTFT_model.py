@@ -51,11 +51,17 @@ class NDVIViTFT(MBase):
 
         self.decoder = NDVIViTDecoder(input_dim=output_size, output_channels=1, output_size=image_size, num_patches=num_patches)
 
+        self.encoder2 = Sen12MSViTEncoder(image_size=image_size, patch_size=num_patches, in_channels=in_channel, dim=dim, depth=6, heads=8, mlp_ratio=4.)
+
 
 
     def forward(self,x, context):
        
         encoded_output = self.encoder(x)
+        encoded_output2 = self.encoder2(x)
+        print(encoded_output2.shape,'encoded_output2')
+        print(encoded_output.shape,'encoded_output')
+
         temporal_output, attension = self.tft(encoded_output, context)
         output = self.decoder(temporal_output)
         
