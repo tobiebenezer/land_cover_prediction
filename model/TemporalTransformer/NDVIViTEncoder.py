@@ -56,28 +56,27 @@ class Sen12MSViTEncoder(nn.Module):
         self.norm = nn.LayerNorm(dim)
 
     def forward(self, x):
-        # x shape: (batch_size, num_patches, channels, height, width)
-        b, n, c, h, w = x.shape
+        # x shape: (batch_size, 25, 64, 64)
         
-        # Reshape to process all patches at once
-        x = x.view(b * n, c, h, w)
+        # Add channel dimension and reshape to process all patches at once
+        x = rearrange(x, 'b p h w -> (b p) 1 h w')
 
-        # Extract features using modified ResNet18
-        x = self.feature_extractor(x)
+        # Apply conv layer
+        x = self.conv(x)  # (b*25, 64, 64, 64)
         
-        # Flatten and project features
-        x = x.view(b * n, -1)
-        x = self.feature_projection(x)
+        # Global average pooling
+        x = self.gap(x)
+        x = rearrange(x, '(b p) c 1 1 -> b p c', p=25)
         
-        # Reshape back to (batch_size, num_patches, dim)
-        x = x.view(b, n, -1)
+        # Project to embedding dimension
+        x = self.proj(x)  # (b, 25, dim)
         
         # Add class token
-        cls_tokens = repeat(self.cls_token, '() n d -> b n d', b=b)
+        cls_tokens = repeat(self.cls_token, '() n d -> b n d', b=x.shape[0])
         x = torch.cat((cls_tokens, x), dim=1)
         
         # Add positional embedding
-        x += self.pos_embedding[:, :n+1]
+        x += self.pos_embedding[:, :x.size(1)]
         x = self.dropout(x)
 
         # Apply transformer
