@@ -60,27 +60,31 @@ class Sen12MSViTEncoder(nn.Module):
         
         # Add channel dimension and reshape to process all patches at once
         x = rearrange(x, 'b s p h w -> (b s p) 1 h w')
-
-        # Apply conv layer
-        x = self.conv(x)  # (b*25, 64, 64, 64)
         
-        # Global average pooling
-        x = self.gap(x)
-        x = rearrange(x, '(b p) c 1 1 -> b p c', p=25)
+        # Extract features using ResNet18
+        features = self.feature_extractor(x)
         
-        # Project to embedding dimension
-        x = self.proj(x)  # (b, 25, dim)
+        # Flatten features and project to desired dimension
+        features = rearrange(features, 'b c h w -> b (c h w)')
+        features = self.feature_projection(features)
         
-        # Add class token
-        cls_tokens = repeat(self.cls_token, '() n d -> b n d', b=x.shape[0])
-        x = torch.cat((cls_tokens, x), dim=1)
+        # Reshape features to (batch_size, sequence_length, num_patches, dim)
+        features = rearrange(features, '(b s p) d -> b s p d', b=x.shape[0] // 25, s=25)
         
-        # Add positional embedding
-        x += self.pos_embedding[:, :x.size(1)]
-        x = self.dropout(x)
-
+        # Add cls tokens and positional embeddings
+        cls_tokens = repeat(self.cls_token, '() n d -> b n d', b=features.shape[0])
+        features = torch.cat((cls_tokens, features), dim=2)
+        features += self.pos_embedding[:, :(features.shape[2])]
+        features = self.dropout(features)
+        
         # Apply transformer
-        x = self.transformer(x)
+        x = self.transformer(features)
         x = self.norm(x)
-
+        
+        # Remove cls tokens
+        x = x[:, :, 1:]
+        
+        # Reshape to (batch_size, sequence_length, num_patches, dim)
+        x = rearrange(x, 'b s n d -> b s n d')
+        
         return x
