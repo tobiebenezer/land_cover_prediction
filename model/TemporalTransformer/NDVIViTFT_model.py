@@ -51,7 +51,7 @@ class NDVIViTFT(MBase):
 
         self.decoder = NDVIViTDecoder(input_dim=output_size, output_channels=1, output_size=image_size, num_patches=num_patches)
 
-        self.encoder2 = Sen12MSViTEncoder(image_size=image_size, num_patches=num_patches, in_channels=in_channel, dim=dim, depth=6, heads=8, mlp_ratio=4.)
+        self.encoder2 = Sen12MSViTEncoder(image_size=image_size, num_patches=num_patches, in_channels=in_channel, dim=dim, depth=2, heads=4, mlp_ratio=2.)
 
 
 

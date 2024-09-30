@@ -64,7 +64,7 @@ class Sen12MSViTEncoder(nn.Module):
         super().__init__()
         
         # Lightweight feature extractor (modified ResNet18)
-        self.feature_extractor = resnet18(pretrained=True)
+        self.feature_extractor = resnet18(pretrained=False)
         self.feature_extractor.conv1 = nn.Conv2d(in_channels, 64, kernel_size=3, stride=1, padding=1, bias=False)
         self.feature_extractor.maxpool = nn.Identity()  # Remove maxpool to maintain spatial dimensions
         # Remove the final fully connected layer and avgpool
@@ -106,7 +106,7 @@ class Sen12MSViTEncoder(nn.Module):
         # Add cls tokens and positional embeddings
         cls_tokens = repeat(self.cls_token, '() n d -> b s n d', b=features.shape[0], s=features.shape[1])
         features = torch.cat((cls_tokens, features), dim=2)
-        features += self.pos_embedding[:, :(features.shape[2])]
+        # features += self.pos_embedding[:, :(features.shape[2])]
         
         features = self.dropout(features)
         
