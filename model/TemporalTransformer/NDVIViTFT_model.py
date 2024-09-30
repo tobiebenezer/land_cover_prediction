@@ -57,12 +57,9 @@ class NDVIViTFT(MBase):
 
     def forward(self,x, context):
        
-        encoded_output = self.encoder(x)
+        # encoded_output = self.encoder(x)
         encoded_output2 = self.encoder2(x)
-        print(encoded_output2.shape,'encoded_output2')
-        print(encoded_output.shape,'encoded_output')
-
-        temporal_output, attension = self.tft(encoded_output, context)
+        temporal_output, attension = self.tft(encoded_output2, context)
         output = self.decoder(temporal_output)
         
         return output, attension
