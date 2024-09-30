@@ -59,7 +59,7 @@ class Sen12MSViTEncoder(nn.Module):
         # x shape: (batch_size, 25, 64, 64)
         
         # Add channel dimension and reshape to process all patches at once
-        x = rearrange(x, 'b p h w -> (b p) 1 h w')
+        x = rearrange(x, 'b s p h w -> (b s p) 1 h w')
 
         # Apply conv layer
         x = self.conv(x)  # (b*25, 64, 64, 64)
