@@ -34,13 +34,9 @@ class NDVIViTEncoder(nn.Module):
         return x
 
 class Sen12MSViTEncoder(nn.Module):
-    def __init__(self, image_size=64, patch_size=4, in_channels=18, dim=256, depth=6, heads=8, mlp_ratio=4.):
+    def __init__(self, patch_size=64, num_patches=25, in_channels=1, dim=256, depth=6, heads=8, mlp_ratio=4.):
         super().__init__()
         
-        assert image_size % patch_size == 0, 'Image dimensions must be divisible by the patch size.'
-        num_patches = (image_size // patch_size) ** 2
-        patch_dim = in_channels * patch_size ** 2
-
         # Lightweight feature extractor (modified ResNet18)
         self.feature_extractor = resnet18(pretrained=True)
         self.feature_extractor.conv1 = nn.Conv2d(in_channels, 64, kernel_size=3, stride=1, padding=1, bias=False)
@@ -49,10 +45,8 @@ class Sen12MSViTEncoder(nn.Module):
         # Remove the final fully connected layer and avgpool
         self.feature_extractor = nn.Sequential(*list(self.feature_extractor.children())[:-2])
 
-        self.to_patch_embedding = nn.Sequential(
-            Rearrange('b c (h p1) (w p2) -> b (h w) (p1 p2 c)', p1=patch_size, p2=patch_size),
-            nn.Linear(patch_dim, dim),
-        )
+        # Adjust the feature dimension
+        self.feature_projection = nn.Linear(512 * 4 * 4, dim)  # 512 is the number of channels in the last ResNet18 layer
 
         self.cls_token = nn.Parameter(torch.randn(1, 1, dim))
         self.pos_embedding = nn.Parameter(torch.randn(1, num_patches + 1, dim))
@@ -62,18 +56,28 @@ class Sen12MSViTEncoder(nn.Module):
         self.norm = nn.LayerNorm(dim)
 
     def forward(self, x):
-        b, c, h, w = x.shape
+        # x shape: (batch_size, num_patches, channels, height, width)
+        b, n, c, h, w = x.shape
+        
+        # Reshape to process all patches at once
+        x = x.view(b * n, c, h, w)
 
         # Extract features using modified ResNet18
         x = self.feature_extractor(x)
-
-        # Create patch embeddings
-        x = self.to_patch_embedding(x)
         
-        # Add class token and positional embedding
+        # Flatten and project features
+        x = x.view(b * n, -1)
+        x = self.feature_projection(x)
+        
+        # Reshape back to (batch_size, num_patches, dim)
+        x = x.view(b, n, -1)
+        
+        # Add class token
         cls_tokens = repeat(self.cls_token, '() n d -> b n d', b=b)
         x = torch.cat((cls_tokens, x), dim=1)
-        x += self.pos_embedding[:, :(x.size(1))]
+        
+        # Add positional embedding
+        x += self.pos_embedding[:, :n+1]
         x = self.dropout(x)
 
         # Apply transformer
