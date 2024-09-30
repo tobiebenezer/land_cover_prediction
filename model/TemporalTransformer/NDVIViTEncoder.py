@@ -90,33 +90,31 @@ class Sen12MSViTEncoder(nn.Module):
         
         # Apply adaptive pooling
         features = self.adaptive_pool(features)
-        print(features.shape,'features')
         
         # Flatten features and project to desired dimension
         features = rearrange(features, 'b c h w -> b (c h w)')
         features = self.feature_projection(features)
-        print(features.shape,'features')
         
         # Reshape features to (batch_size, sequence_length, num_patches, dim)
         features = rearrange(features, '(b s p) d -> b s p d', b=x.shape[0] // 25, s=25)
         
         # Add cls tokens and positional embeddings
-        cls_tokens = repeat(self.cls_token, '() n d -> b n d', b=features.shape[0])
-        print(cls_tokens.shape,'cls_tokens')
-        print(features.shape,'features')
-        
+        cls_tokens = repeat(self.cls_token, '() n d -> b s n d', b=features.shape[0], s=features.shape[1])
         features = torch.cat((cls_tokens, features), dim=2)
         features += self.pos_embedding[:, :(features.shape[2])]
         features = self.dropout(features)
+        
+        # Reshape to (batch_size * sequence_length, num_patches + 1, dim) for transformer
+        features = rearrange(features, 'b s n d -> (b s) n d')
         
         # Apply transformer
         x = self.transformer(features)
         x = self.norm(x)
         
         # Remove cls tokens
-        x = x[:, :, 1:]
+        x = x[:, 1:]
         
-        # Reshape to (batch_size, sequence_length, num_patches, dim)
-        x = rearrange(x, 'b s n d -> b s n d')
+        # Reshape back to (batch_size, sequence_length, num_patches, dim)
+        x = rearrange(x, '(b s) n d -> b s n d', b=features.shape[0] // features.shape[1])
         
         return x
