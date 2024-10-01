@@ -78,15 +78,15 @@ class Sen12MSViTEncoder(nn.Module):
         self.feature_projection = nn.Linear(512 * 8 * 8, dim)
         
         self.cls_token = nn.Parameter(torch.randn(1, 1, dim))
-        self.pos_embedding = nn.Parameter(torch.randn(1, num_patches + 1, dim))
+        self.pos_embedding = nn.Parameter(torch.randn(1,1, dim))
         self.dropout = nn.Dropout(0.1)
         
         self.transformer = Transformer(dim=dim, depth=depth, num_heads=heads, mlp_ratio=mlp_ratio)
         self.norm = nn.LayerNorm(dim)
 
     def forward(self, x):
-        # x shape: (batch_size, 25, 64, 64)
-        b, s, p, _, _ = x.shape
+        # x shape: (batch_size, 64, 64)
+        b, _, _ = x.shape
         
         # Add channel dimension and reshape to process all patches at once
         x = rearrange(x, 'b s h w -> (b s ) 1 h w')
@@ -102,7 +102,7 @@ class Sen12MSViTEncoder(nn.Module):
         features = self.feature_projection(features)
         
         # Reshape features to (batch_size, sequence_length, num_patches, dim)
-        features = rearrange(features, '(b s p) d -> b s p d', b=x.shape[0] // 25, s=25)
+        features = rearrange(features, '(b s) d -> b s d', b=x.shape[0] // 25, s=25)
         
         # Add cls tokens and positional embeddings
         cls_tokens = repeat(self.cls_token, '() n d -> b s n d', b=features.shape[0], s=features.shape[1])
