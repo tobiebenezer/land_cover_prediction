@@ -13,7 +13,7 @@ class NDVIViTEncoder(nn.Module):
         self.transformer = Transformer(dim=dim, depth=depth, num_heads=heads, mlp_ratio=mlp_ratio)
 
         self.cls_token = nn.Parameter(torch.randn(1, 1, dim))
-        self.pos_embedding = nn.Parameter(torch.randn(1, num_patches + 1, dim))
+        self.pos_embedding = nn.Parameter(torch.randn(1,1, dim))
         self.dropout = nn.Dropout(0.1)
 
         self.transformerblock = Transformer(dim=dim, depth=depth, num_heads=heads, mlp_ratio=mlp_ratio)
@@ -56,7 +56,7 @@ class Transformer(nn.Module):
         return x
 
 class Sen12MSViTEncoder(nn.Module):
-    def __init__(self, image_size=64, num_patches=25, in_channels=1, dim=256, output_dim=256, depth=6, heads=8, mlp_ratio=4.):
+    def __init__(self, image_size=64, in_channels=1, dim=256, output_dim=256, depth=6, heads=8, mlp_ratio=4.):
         super().__init__()
         
         # Lightweight feature extractor (modified ResNet18)
@@ -81,9 +81,9 @@ class Sen12MSViTEncoder(nn.Module):
 
     def forward(self, x):
         # x shape: (batch_size, 25, 64, 64)
-        b, s, p, _, _ = x.shape
+        b, s,  _, _ = x.shape
         # Add channel dimension and reshape to process all patches at once
-        x = rearrange(x, 'b s p h w -> (b s p) 1 h w')
+        x = rearrange(x, 'b s h w -> (b s ) 1 h w')
         
         # Extract features using ResNet18
         features = self.feature_extractor(x)
