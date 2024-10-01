@@ -1,5 +1,6 @@
 from data.feature_extraction.data_loader import PatchDataset
-from model.feature_extraction.unet2d import CNNtokenizer
+# from model.feature_extraction.unet2d import CNNtokenizer
+from model.TemporalTransformer.tokenizer import NDVIViTFT_tokenizer
 from utils.traning import *
 from utils.process_data import get_data
 import pandas as pd
@@ -17,16 +18,17 @@ device = (
     else "cpu"
 )
 
-tokenizer = CNNtokenizer(dim = [
-    (1, 64),    
-    (64, 64),  
-    (64, 128),  
-    (128, 128), 
-    (128, 256), 
-    (256, 256), 
-    (256, 512), 
-    (512, 512),
-])
+# tokenizer = CNNtokenizer(dim = [
+#     (1, 64),    
+#     (64, 64),  
+#     (64, 128),  
+#     (128, 128), 
+#     (128, 256), 
+#     (256, 256), 
+#     (256, 512), 
+#     (512, 512),
+# ])
+tokenizer = NDVIViTFT_tokenizer(pred_size=4)
 tokenizer.to(device)
 
 ndvi_3d = np.load('64x64_patches.npy')

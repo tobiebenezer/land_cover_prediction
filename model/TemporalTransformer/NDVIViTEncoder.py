@@ -21,20 +21,21 @@ class NDVIViTEncoder(nn.Module):
 
     def forward(self, x):
         bat = x.shape[0]
-        x = rearrange(x, 'b s p h w -> (b s) p h w')
+        x = rearrange(x, 'b s h w -> (b s) h w')
         b, n, _, _ = x.shape
         x = self.patch_embedding(x)
-        x = rearrange(x, 'b s h -> b s 1 h')
-        cls_tokens = repeat(self.cls_token, '() n d -> b s n d', b=b, s=x.shape[1])
-        x = torch.cat((cls_tokens, x), dim=2)
-        x += self.pos_embedding[:, :(x.shape[-2] )]
-        x = self.dropout(x)
-        x = rearrange(x, 'b s n d -> (b s) n d')
-        x = self.transformerblock(x)
-        x = self.norm(x)
-        x = x[:, 1:]
-        x = rearrange(x, 'p s h -> (p s) h')
-        x = rearrange(x, '(b s n )d -> b s n d', b=bat, n=n)
+        print(x.shape,"x")
+        # x = rearrange(x, 'b s h -> b s 1 h')
+        # cls_tokens = repeat(self.cls_token, '() n d -> b s n d', b=b, s=x.shape[1])
+        # x = torch.cat((cls_tokens, x), dim=2)
+        # x += self.pos_embedding[:, :(x.shape[-2] )]
+        # x = self.dropout(x)
+        # x = rearrange(x, 'b s n d -> (b s) n d')
+        # x = self.transformerblock(x)
+        # x = self.norm(x)
+        # x = x[:, 1:]
+        # x = rearrange(x, 'p s h -> (p s) h')
+        # x = rearrange(x, '(b s n )d -> b s n d', b=bat, n=n)
         return x
 
 class Transformer(nn.Module):
