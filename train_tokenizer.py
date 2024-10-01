@@ -28,7 +28,7 @@ device = (
 #     (256, 512), 
 #     (512, 512),
 # ])
-tokenizer = NDVIViTFT_tokenizer(pred_size=4)
+tokenizer = NDVIViTFT_tokenizer()
 tokenizer.to(device)
 
 ndvi_3d = np.load('64x64_patches.npy')

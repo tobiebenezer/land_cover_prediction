@@ -23,7 +23,6 @@ class NDVIViTFT_tokenizer(MBase):
         output_size=128, 
         image_size=64,
         dropout= 0.2, 
-        num_patches=25,
         patch_size=3, 
         in_channel=1,
         dim=128,
@@ -37,7 +36,7 @@ class NDVIViTFT_tokenizer(MBase):
         self.encoder = NDVIViTEncoder(image_size=image_size, 
                         in_channel=in_channel, dim=dim, depth=depth, heads=heads, mlp_ratio=mlp_ratio)
 
-        self.decoder = NDVIViTDecoder(input_dim=output_size, output_channels=1, output_size=image_size, num_patches=num_patches)
+        self.decoder = NDVIViTDecoder(input_dim=output_size, output_channels=1, output_size=image_size)
 
         self.encoder2 = Sen12MSViTEncoder(image_size=image_size, in_channels=in_channel, dim=dim, depth=2, heads=4, mlp_ratio=2.)
 
