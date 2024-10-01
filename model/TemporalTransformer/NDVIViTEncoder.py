@@ -21,8 +21,8 @@ class NDVIViTEncoder(nn.Module):
 
     def forward(self, x):
         bat = x.shape[0]
-        x = rearrange(x, 'b s h w -> (b s) h w')
-        b, n, _, _ = x.shape
+        x = rearrange(x, 'b s w -> b  h w')
+        b, n, _= x.shape
         x = self.patch_embedding(x)
         print(x.shape,"x")
         # x = rearrange(x, 'b s h -> b s 1 h')
