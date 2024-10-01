@@ -56,7 +56,7 @@ class Transformer(nn.Module):
         return x
 
 class Sen12MSViTEncoder(nn.Module):
-    def __init__(self, image_size=64, num_patches=25, in_channels=1, dim=256, depth=6, heads=8, mlp_ratio=4.):
+    def __init__(self, image_size=64, num_patches=25, in_channels=1, dim=256, output_dim=256, depth=6, heads=8, mlp_ratio=4.):
         super().__init__()
         
         # Lightweight feature extractor (modified ResNet18)
@@ -81,7 +81,7 @@ class Sen12MSViTEncoder(nn.Module):
 
     def forward(self, x):
         # x shape: (batch_size, 25, 64, 64)
-        
+        b, s, p, _, _ = x.shape
         # Add channel dimension and reshape to process all patches at once
         x = rearrange(x, 'b s p h w -> (b s p) 1 h w')
         
@@ -112,9 +112,9 @@ class Sen12MSViTEncoder(nn.Module):
         x = self.norm(x)
         
         # Remove cls tokens
-        x = x[:, 1:]
+        # x = x[:, 1:]
         
         # Reshape back to (batch_size, sequence_length, num_patches, dim)
-        x = rearrange(x, '(b s) n d -> b s n d', b=features.shape[0] // features.shape[1])
+        x = rearrange(x, '(b s p) c h -> b s p (c h)', b=b, s=s )
         
         return x
