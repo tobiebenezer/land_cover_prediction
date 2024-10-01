@@ -42,7 +42,7 @@ class NDVIViTFT_tokenizer(MBase):
 
 
 
-    def forward(self,x, context):
+    def forward(self,x):
        
         encoded_output = self.encoder(x)
         output = self.decoder(temporal_output)
@@ -58,16 +58,16 @@ class NDVIViTFT_tokenizer(MBase):
         torch.save(self.decoder.state_dict(), decoder_weights)
 
     def training_step(self,batch):
-        X, context, (y ,_)= batch
-        out = self(X.to(device), context.to(device))
+        X, (y ,_)= batch
+        out = self(X.to(device))
         
         loss = F.mse_loss(out,y.to(device)) # calculating loss
         
         return loss
     
     def validation_step(self, batch):
-        X, context, ( y,_) = batch
-        out= self(X.to(device), context.to(device))
+        X, ( y,_) = batch
+        out= self(X.to(device))
         loss = F.mse_loss(out,y.to(device))
         acc = accuracy(out, y.to(device))
         return {'val_loss':loss.detach(), 'val_accuracy':acc}
