@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torchmetrics import MeanAbsoluteError, MeanSquaredError
 
 device = (
     "cuda"
@@ -38,4 +39,7 @@ class MBase(nn.Module):
         
 
 def accuracy(outputs, labels):
-    return torch.mean(torch.abs((labels - outputs))) * 100
+    # return torch.mean(torch.abs((labels - outputs))) * 100
+    # val_mae = MeanAbsoluteError()
+    val_mse = MeanSquaredError().to(device)
+    return val_mse(outputs, labels)

@@ -23,8 +23,8 @@ class TemporalFusionTransformer(nn.Module):
         self.input_embedding = nn.Linear(hidden_size, hidden_size)
         self.day_embedding = PositionalEncoder(hidden_size // 2, 1, dropout, max_len=366)
         self.month_embedding = PositionalEncoder(hidden_size // 2, 2, dropout, max_len=12)
-        self.encoder_lstm = nn.LSTM(hidden_size * (patch_size + 1), hidden_size * (patch_size ), num_layers, dropout=dropout, batch_first=True)
-        self.decoder_lstm = nn.LSTM(hidden_size * (patch_size + 1), hidden_size * (patch_size), num_layers, dropout=dropout, batch_first=True)
+        self.encoder_lstm = nn.LSTM(hidden_size * (patch_size), hidden_size * (patch_size ), num_layers, dropout=dropout, batch_first=True)
+        self.decoder_lstm = nn.LSTM(hidden_size * (patch_size ), hidden_size * (patch_size), num_layers, dropout=dropout, batch_first=True)
         self.temporal_grn = GatedResidualNetwork(hidden_size * 2, hidden_size, hidden_size, dropout)
         self.final_grn = GatedResidualNetwork(hidden_size, hidden_size, output_size, dropout)
 
@@ -117,7 +117,7 @@ class TemporalFusionTransformer(nn.Module):
         # print(gated_outputs.shape,"gated_outputs")
         # print(x.shape,"x")
        
-        temporal_feature_outputs = self.add_norm(x[:,:-1,:] + gated_outputs)
+        temporal_feature_outputs = self.add_norm(x+ gated_outputs)
 
         static_context_e_reshaped = rearrange(static_context_e, "b (s h) -> b s h", s=gated_outputs.shape[1] ) #.reshape(batch x sequence, patch, hidden)
         static_enrichment_outputs = self.static_enrichment(torch.cat([temporal_feature_outputs, static_context_e_reshaped], dim=-1))

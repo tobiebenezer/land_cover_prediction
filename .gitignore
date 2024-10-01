@@ -2,3 +2,10 @@ ndvi_sequence_samples.csv
 */__pycache__
 __pycache__
 .venv
+*.npy
+*.pth
+*.pkl
+log.txt
+ *.npy 
+*.pkl 
+*.csv

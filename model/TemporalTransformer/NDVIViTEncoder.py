@@ -24,13 +24,17 @@ class NDVIViTEncoder(nn.Module):
         x = rearrange(x, 'b s p h w -> (b s) p h w')
         b, n, _, _ = x.shape
         x = self.patch_embedding(x)
-        cls_tokens = repeat(self.cls_token, '() n d -> b n d', b=b)
-        x = torch.cat((cls_tokens, x), dim=1)
-        x += self.pos_embedding[:, :(n + 1)]
+        x = rearrange(x, 'b s h -> b s 1 h')
+        cls_tokens = repeat(self.cls_token, '() n d -> b s n d', b=b, s=x.shape[1])
+        x = torch.cat((cls_tokens, x), dim=2)
+        x += self.pos_embedding[:, :(x.shape[-2] )]
         x = self.dropout(x)
+        x = rearrange(x, 'b s n d -> (b s) n d')
         x = self.transformerblock(x)
         x = self.norm(x)
-        x = rearrange(x, '(b s) n d -> b s n d', b=bat)
+        x = x[:, 1:]
+        x = rearrange(x, 'p s h -> (p s) h')
+        x = rearrange(x, '(b s n )d -> b s n d', b=bat, n=n)
         return x
 
 class Transformer(nn.Module):
@@ -60,7 +64,7 @@ class Sen12MSViTEncoder(nn.Module):
         super().__init__()
         
         # Lightweight feature extractor (modified ResNet18)
-        self.feature_extractor = resnet18(pretrained=True)
+        self.feature_extractor = resnet18(pretrained=False)
         self.feature_extractor.conv1 = nn.Conv2d(in_channels, 64, kernel_size=3, stride=1, padding=1, bias=False)
         self.feature_extractor.maxpool = nn.Identity()  # Remove maxpool to maintain spatial dimensions
         # Remove the final fully connected layer and avgpool
@@ -81,7 +85,8 @@ class Sen12MSViTEncoder(nn.Module):
 
     def forward(self, x):
         # x shape: (batch_size, 25, 64, 64)
-        b, s,  _, _ = x.shape
+        b, s, p, _, _ = x.shape
+        
         # Add channel dimension and reshape to process all patches at once
         x = rearrange(x, 'b s h w -> (b s ) 1 h w')
         
@@ -101,12 +106,12 @@ class Sen12MSViTEncoder(nn.Module):
         # Add cls tokens and positional embeddings
         cls_tokens = repeat(self.cls_token, '() n d -> b s n d', b=features.shape[0], s=features.shape[1])
         features = torch.cat((cls_tokens, features), dim=2)
-        features += self.pos_embedding[:, :(features.shape[2])]
+        # features += self.pos_embedding[:, :(features.shape[2])]
+        
         features = self.dropout(features)
         
         # Reshape to (batch_size * sequence_length, num_patches + 1, dim) for transformer
         features = rearrange(features, 'b s n d -> (b s) n d')
-        
         # Apply transformer
         x = self.transformer(features)
         x = self.norm(x)
@@ -115,6 +120,6 @@ class Sen12MSViTEncoder(nn.Module):
         # x = x[:, 1:]
         
         # Reshape back to (batch_size, sequence_length, num_patches, dim)
-        x = rearrange(x, '(b s p) c h -> b s p (c h)', b=b, s=s )
+        x = rearrange(x, '(b s p) c h -> b s p (c h)', b=b, s=s, )
         
         return x
