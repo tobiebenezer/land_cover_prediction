@@ -42,31 +42,39 @@ class Scaler():
         return x*10000
 
 
-if not os.path.exists('scaler.pkl'):
-    train_dataset = PatchDataset(ndvi_3d,mode="train")
-    train_dataset.save_scaler('scaler.pkl')
-    scaler = train_dataset.scaler
-    
-else:
-    # scaler = PatchDataset.load_scaler('scaler.pkl')
-    scaler = Scaler()
-    train_dataset = PatchDataset(ndvi_3d,mode="train",scaler=scaler)
 
-test_dataset = PatchDataset(ndvi_3d,mode="test",scaler=scaler)
-val_dataset = PatchDataset(ndvi_3d,mode="val",scaler=scaler)
-
-train_dataloader = DataLoader(train_dataset,batch_size=25, shuffle=True,num_workers=2)
-val_dataloader = DataLoader(val_dataset,batch_size=25, shuffle=True,num_workers=2)
-test_dataloader = DataLoader(test_dataset,batch_size=25, shuffle=True,num_workers=2)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='training')
-    parser.add_argument('EPOCHS', type=int, help='number of epochs')
-    parser.add_argument('LR', type=float, help='learning rate')
+    parser.add_argument('--EPOCHS', type=int, help='number of epochs')
+    parser.add_argument('--LR', type=float, help='learning rate')
+    parser.add_argument('--BATCH_SIZE', type=int, help='batch size')
+    parser.add_argument('--NUM_WORKERS', type=int, help='number of workers',default=1)
     args = parser.parse_args()
+
 
     EPOCHS = args.EPOCHS if args.EPOCHS else 1
     LR = args.LR if args.LR else 0.0001
+    BATCH_SIZE = args.BATCH_SIZE if args.BATCH_SIZE else 2
+    NUM_WORKERS = args.NUM_WORKERS if args.NUM_WORKERS else 1
+
+    if not os.path.exists('scaler.pkl'):
+        train_dataset = PatchDataset(ndvi_3d,mode="train")
+        train_dataset.save_scaler('scaler.pkl')
+        scaler = train_dataset.scaler
+        
+    else:
+        # scaler = PatchDataset.load_scaler('scaler.pkl')
+        scaler = Scaler()
+        train_dataset = PatchDataset(ndvi_3d,mode="train",scaler=scaler)
+
+    test_dataset = PatchDataset(ndvi_3d,mode="test",scaler=scaler)
+    val_dataset = PatchDataset(ndvi_3d,mode="val",scaler=scaler)
+
+    train_dataloader = DataLoader(train_dataset,batch_size=BATCH_SIZE, shuffle=True,num_workers=NUM_WORKERS)
+    val_dataloader = DataLoader(val_dataset,batch_size=BATCH_SIZE, shuffle=True,num_workers=NUM_WORKERS)
+    test_dataloader = DataLoader(test_dataset,batch_size=BATCH_SIZE, shuffle=True,num_workers=NUM_WORKERS)
+
 
     history,tokenizer = fit(EPOCHS, LR, tokenizer, train_dataloader,val_dataloader)
     
