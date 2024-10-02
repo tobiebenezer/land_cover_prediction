@@ -87,13 +87,10 @@ class Sen12MSViTEncoder(nn.Module):
     def forward(self, x):
         # x shape: (batch_size, height, width)
         b, h, w = x.shape
-        
-        # Add channel dimension
         x = rearrange(x, 'b h w -> b 1 h w')
         
-        # Extract features using ResNet18
+        # Extract features 
         features = self.feature_extractor(x)
-        # # Apply adaptive pooling
         features = self.adaptive_pool(features)
         
         # # Flatten spatial dimensions and project to desired dimension
