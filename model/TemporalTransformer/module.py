@@ -356,27 +356,40 @@ class ScaledDotProductAttention(nn.Module):
         return output, attention
 
 class PatchEmbedding(nn.Module):
-    def __init__(self, img_size=64, patch_size=3, in_chans=1, embed_dim=128):
+    def __init__(self, img_size=64, in_chans=1, embed_dim=128):
         super().__init__()
         self.image_size = img_size
-        self.patch_size = patch_size
         self.proj = nn.Sequential(
-            nn.Conv2d(in_chans, 64, kernel_size=patch_size, stride=patch_size),
+            nn.Conv2d(in_chans, 64, kernel_size=3, stride=1),
             nn.BatchNorm2d(64), 
             nn.ReLU(),  
             nn.MaxPool2d(kernel_size=2, stride=2),  
-            nn.Conv2d(64, embed_dim, kernel_size=1),  
+            nn.Conv2d(64, 64, kernel_size=1),  
+            nn.BatchNorm2d(64),  
+            nn.ReLU() ,
+            nn.Conv2d(64, 128, kernel_size=3, stride=1),
+            nn.BatchNorm2d(128), 
+            nn.ReLU(),  
+            nn.MaxPool2d(kernel_size=2, stride=2),  
+            nn.Conv2d(128, 128, kernel_size=1),  
+            nn.BatchNorm2d(128),  
+            nn.ReLU(),
+            nn.Conv2d(128, 256, kernel_size=3, stride=1),
+            nn.BatchNorm2d(256), 
+            nn.ReLU(),  
+            nn.MaxPool2d(kernel_size=2, stride=2),  
+            nn.Conv2d(256, embed_dim, kernel_size=3),  
             nn.BatchNorm2d(embed_dim),  
             nn.ReLU()  
         )
 
-        self.linear = nn.Linear(embed_dim * 10 * 10, embed_dim)
+        self.linear = nn.Linear(embed_dim * 4 * 4, embed_dim)
 
     def forward(self, x):
-        b, n, _, _ = x.shape
-        x = rearrange(x, 'b p h w -> (b p) 1 h w')
+        b, _, _ = x.shape
+        x = rearrange(x, 'b h w -> b 1 h w')
         x = self.proj(x)
-        x = rearrange(x, '(b p) c h w -> b p (c h w)', b=b, p=n)
+        x = rearrange(x, 'b c h w -> b (c h w)', b=b)
         x = self.linear(x)
 
         return x

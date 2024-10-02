@@ -9,7 +9,7 @@ from torchvision.models import resnet18
 class NDVIViTEncoder(nn.Module):
     def __init__(self, image_size=64,num_patches=25, patch_size=3, in_channel=1, dim=128, depth=2, heads=8, mlp_ratio=4.):
         super().__init__()
-        self.patch_embedding = PatchEmbedding(img_size=image_size, patch_size=patch_size, in_chans=in_channel, embed_dim=dim)
+        self.patch_embedding = PatchEmbedding(img_size=image_size, in_chans=in_channel, embed_dim=dim)
         self.transformer = Transformer(dim=dim, depth=depth, num_heads=heads, mlp_ratio=mlp_ratio)
 
         self.cls_token = nn.Parameter(torch.randn(1, 1, dim))
@@ -21,21 +21,19 @@ class NDVIViTEncoder(nn.Module):
 
     def forward(self, x):
         bat = x.shape[0]
-        x = rearrange(x, 'b s w -> b  h w')
-        b, n, _= x.shape
+        x = rearrange(x, 'b h w -> b  h w')
+        b, _, _= x.shape
         x = self.patch_embedding(x)
-        print(x.shape,"x")
-        # x = rearrange(x, 'b s h -> b s 1 h')
-        # cls_tokens = repeat(self.cls_token, '() n d -> b s n d', b=b, s=x.shape[1])
-        # x = torch.cat((cls_tokens, x), dim=2)
+        x = rearrange(x, 'b  h -> b 1 h')
+        # cls_tokens = repeat(self.cls_token, '() 1 d -> b 1 d', b=b)
+        
+        # x = torch.cat((cls_tokens, x), dim=1)
         # x += self.pos_embedding[:, :(x.shape[-2] )]
         # x = self.dropout(x)
         # x = rearrange(x, 'b s n d -> (b s) n d')
-        # x = self.transformerblock(x)
+        x = self.transformerblock(x)
         # x = self.norm(x)
-        # x = x[:, 1:]
-        # x = rearrange(x, 'p s h -> (p s) h')
-        # x = rearrange(x, '(b s n )d -> b s n d', b=bat, n=n)
+        x = rearrange(x, 'b s h -> (b s) h')
         return x
 
 class Transformer(nn.Module):
@@ -60,9 +58,11 @@ class Transformer(nn.Module):
             x = x + mlp(norm2(x))
         return x
 
+
 class Sen12MSViTEncoder(nn.Module):
     def __init__(self, image_size=64, in_channels=1, dim=256, output_dim=256, depth=6, heads=8, mlp_ratio=4.):
         super().__init__()
+        
         
         # Lightweight feature extractor (modified ResNet18)
         self.feature_extractor = resnet18(pretrained=False)
@@ -72,55 +72,115 @@ class Sen12MSViTEncoder(nn.Module):
         self.feature_extractor = nn.Sequential(*list(self.feature_extractor.children())[:-2])
         
         # Add adaptive pooling to reduce spatial dimensions
-        self.adaptive_pool = nn.AdaptiveAvgPool2d((8, 8))
+        self.adaptive_pool = nn.AdaptiveAvgPool2d((int(image_size**0.5), int(image_size**0.5)))
         
         # Adjust the feature dimension
-        self.feature_projection = nn.Linear(512 * 8 * 8, dim)
+        self.feature_projection = nn.Linear(512, dim)
         
         self.cls_token = nn.Parameter(torch.randn(1, 1, dim))
-        self.pos_embedding = nn.Parameter(torch.randn(1,1, dim))
+        self.pos_embedding = nn.Parameter(torch.randn(1,  1, dim))
         self.dropout = nn.Dropout(0.1)
         
         self.transformer = Transformer(dim=dim, depth=depth, num_heads=heads, mlp_ratio=mlp_ratio)
         self.norm = nn.LayerNorm(dim)
 
     def forward(self, x):
-        # x shape: (batch_size, 64, 64)
-        b, _, _ = x.shape
+        # x shape: (batch_size, height, width)
+        b, h, w = x.shape
         
-        # Add channel dimension and reshape to process all patches at once
-        x = rearrange(x, 'b s h w -> (b s ) 1 h w')
+        # Add channel dimension
+        x = rearrange(x, 'b h w -> b 1 h w')
         
         # Extract features using ResNet18
         features = self.feature_extractor(x)
-        
-        # Apply adaptive pooling
+        # # Apply adaptive pooling
         features = self.adaptive_pool(features)
         
-        # Flatten features and project to desired dimension
-        features = rearrange(features, 'b c h w -> b (c h w)')
+        # # Flatten spatial dimensions and project to desired dimension
+        features = rearrange(features, 'b c h w -> b (h w) c')
         features = self.feature_projection(features)
+        print(features.shape,'featu')
         
-        # Reshape features to (batch_size, sequence_length, num_patches, dim)
-        features = rearrange(features, '(b s) d -> b s d', b=x.shape[0] // 25, s=25)
+        # # Add cls token
+        # cls_tokens = repeat(self.cls_token, '() n d -> b n d', b=b)
+        # features = torch.cat((cls_tokens, features), dim=1)
         
-        # Add cls tokens and positional embeddings
-        cls_tokens = repeat(self.cls_token, '() n d -> b s n d', b=features.shape[0], s=features.shape[1])
-        features = torch.cat((cls_tokens, features), dim=2)
-        # features += self.pos_embedding[:, :(features.shape[2])]
+        # # Add positional embeddings
+        # features += self.pos_embedding[:, :features.shape[1]]
         
-        features = self.dropout(features)
+        # features = self.dropout(features)
         
-        # Reshape to (batch_size * sequence_length, num_patches + 1, dim) for transformer
-        features = rearrange(features, 'b s n d -> (b s) n d')
-        # Apply transformer
-        x = self.transformer(features)
-        x = self.norm(x)
+        # # Apply transformer
+        # x = self.transformer(features)
+        # x = self.norm(x)
         
-        # Remove cls tokens
-        # x = x[:, 1:]
-        
-        # Reshape back to (batch_size, sequence_length, num_patches, dim)
-        x = rearrange(x, '(b s p) c h -> b s p (c h)', b=b, s=s, )
-        
+        # # Remove cls token
+        # x = x[:, 1:, :]
+        # print(x.shape, 'c')
         return x
+
+
+# class Sen12MSViTEncoder(nn.Module):
+#     def __init__(self, image_size=64, in_channels=1, dim=256, output_dim=256, depth=6, heads=8, mlp_ratio=4.):
+#         super().__init__()
+        
+#         # Lightweight feature extractor (modified ResNet18)
+#         self.feature_extractor = resnet18(pretrained=False)
+#         self.feature_extractor.conv1 = nn.Conv2d(in_channels, 64, kernel_size=3, stride=1, padding=1, bias=False)
+#         self.feature_extractor.maxpool = nn.Identity()  # Remove maxpool to maintain spatial dimensions
+#         # Remove the final fully connected layer and avgpool
+#         self.feature_extractor = nn.Sequential(*list(self.feature_extractor.children())[:-2])
+        
+#         # Add adaptive pooling to reduce spatial dimensions
+#         self.adaptive_pool = nn.AdaptiveAvgPool2d((8, 8))
+        
+#         # Adjust the feature dimension
+#         self.feature_projection = nn.Linear(512 * 8 * 8, dim)
+        
+#         self.cls_token = nn.Parameter(torch.randn(1, 1, dim))
+#         self.pos_embedding = nn.Parameter(torch.randn(1,1, dim))
+#         self.dropout = nn.Dropout(0.1)
+        
+#         self.transformer = Transformer(dim=dim, depth=depth, num_heads=heads, mlp_ratio=mlp_ratio)
+#         self.norm = nn.LayerNorm(dim)
+
+#     def forward(self, x):
+#         # x shape: (batch_size, 64, 64)
+#         b, _, _ = x.shape
+        
+#         # Add channel dimension and reshape to process all patches at once
+#         x = rearrange(x, 'b s h w -> (b s ) 1 h w')
+        
+#         # Extract features using ResNet18
+#         features = self.feature_extractor(x)
+        
+#         # Apply adaptive pooling
+#         features = self.adaptive_pool(features)
+        
+#         # Flatten features and project to desired dimension
+#         features = rearrange(features, 'b c h w -> b (c h w)')
+#         features = self.feature_projection(features)
+        
+#         # Reshape features to (batch_size, sequence_length, num_patches, dim)
+#         features = rearrange(features, '(b s) d -> b s d', b=x.shape[0] // 25, s=25)
+        
+#         # Add cls tokens and positional embeddings
+#         cls_tokens = repeat(self.cls_token, '() n d -> b s n d', b=features.shape[0], s=features.shape[1])
+#         features = torch.cat((cls_tokens, features), dim=2)
+#         # features += self.pos_embedding[:, :(features.shape[2])]
+        
+#         features = self.dropout(features)
+        
+#         # Reshape to (batch_size * sequence_length, num_patches + 1, dim) for transformer
+#         features = rearrange(features, 'b s n d -> (b s) n d')
+#         # Apply transformer
+#         x = self.transformer(features)
+#         x = self.norm(x)
+        
+#         # Remove cls tokens
+#         # x = x[:, 1:]
+        
+#         # Reshape back to (batch_size, sequence_length, num_patches, dim)
+#         x = rearrange(x, '(b s p) c h -> b s p (c h)', b=b, s=s, )
+        
+#         return x

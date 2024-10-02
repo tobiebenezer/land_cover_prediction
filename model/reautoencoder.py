@@ -1,12 +1,13 @@
-import torch
-from torch import nn, einsum
-from einops import rearrange,repeat
+from model.resdecoder import ResNet18Decoder
+from model.resencoder import ResNet18Encoder
+from einops import rearrange
 from einops.layers.torch import Rearrange
 from model.TemporalTransformer.module import *
-from model.TemporalTransformer.NDVIViTEncoder import *
-from model.TemporalTransformer.NDVIViTDecoder import *
 from model.TemporalTransformer.tft import *
 from model.base import MBase, accuracy
+import torch.nn as nn
+import torch.optim as optim
+import torch
 
 device = (
     "cuda"
@@ -16,37 +17,15 @@ device = (
     else "cpu"
 )
 
-class NDVIViTFT_tokenizer(MBase):
-    def __init__(self,
-        num_heads=8, 
-        hidden_size=128,
-        output_size=128, 
-        image_size=64,
-        dropout= 0.2, 
-        patch_size=3, 
-        in_channel=1,
-        dim=128,
-        depth=2,
-        heads=8, 
-        mlp_ratio=4.,
-        num_layers=2):
-        super().__init__()
+class ResNet18Autoencoder(MBase):
+    def __init__(self, in_channels=1, out_channels=3):
+        super(ResNet18Autoencoder, self).__init__()
+        self.encoder = ResNet18Encoder(in_channels)
+        self.decoder = ResNet18Decoder(out_channels)
 
-
-        self.encoder = NDVIViTEncoder(image_size=image_size, 
-                        in_channel=in_channel, dim=dim, depth=depth, heads=heads, mlp_ratio=mlp_ratio)
-
-        self.decoder = NDVIViTDecoder(input_dim=output_size, output_channels=1, output_size=image_size)
-
-        self.encoder2 = Sen12MSViTEncoder(image_size=image_size, in_channels=in_channel, dim=dim, depth=2, heads=4, mlp_ratio=2.)
-
-
-
-    def forward(self,x):
-        encoded_output = self.encoder(x)
-        # encoded_output = rearrange(encoded_output,'(b s) h -> b s h', b=)
-        output = self.decoder(encoded_output)
-        
+    def forward(self, x):
+        x4 = self.encoder(x)
+        output = self.decoder(x4)
         return output
 
     def load_weights(self, encoder_weights, decoder_weights):
@@ -59,6 +38,7 @@ class NDVIViTFT_tokenizer(MBase):
 
     def training_step(self,batch):
         X, (y ,_)= batch
+        print(X.shape)
         out = self(X.to(device))
         out = rearrange(out, 'b c h w -> (b c) h w')
         loss = F.mse_loss(out,X.to(device)) # calculating loss
@@ -72,4 +52,6 @@ class NDVIViTFT_tokenizer(MBase):
         loss = F.mse_loss(out,X.to(device))
         acc = accuracy(out, X.to(device))
         return {'val_loss':loss.detach(), 'val_accuracy':acc}
+
+
 

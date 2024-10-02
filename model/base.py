@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchmetrics import MeanAbsoluteError, MeanSquaredError
 
+
 device = (
     "cuda"
     if torch.cuda.is_available()
