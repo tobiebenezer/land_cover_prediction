@@ -9,3 +9,4 @@ log.txt
  *.npy 
 *.pkl 
 *.csv
+zip_data

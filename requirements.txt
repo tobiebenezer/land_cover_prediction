@@ -13,3 +13,4 @@ geopandas
 shapely
 ee
 einops
+sklearn
