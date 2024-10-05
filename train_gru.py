@@ -1,7 +1,7 @@
 from data.feature_extraction.NDVIViTDataloader import NDIVIViTDataloader
 from model.TemporalTransformer.NDVIViTEncoder import NDVIViTEncoder
-from model.TemporalTransformer.NDVIViTFT_model import NDVIViTFT
-from mondel.Combine_model import Combine_model
+from model.combine_model import Combine_model
+from model.gru_model import GRU
 from utils.traning import *
 from utils.process_data import get_data
 import pandas as pd
@@ -76,6 +76,9 @@ if __name__ == "__main__":
     parser.add_argument('--PRED_LEN', type=int, help='prediction length', default=4)
     parser.add_argument('--PAST_LEN', type=int, help='past length', default=10)
     parser.add_argument('--NUM_WORKERS', type=int, help='number of workers',default=1)
+    parser.add_argument('--ENCODER_PATH', type=str, help='number of workers',default="")
+    parser.add_argument('--DECODER_PATH', type=str, help='number of workers',default="")
+
     args = parser.parse_args()
 
 
@@ -86,6 +89,9 @@ if __name__ == "__main__":
     PRED_LEN = args.PRED_LEN if args.PRED_LEN else 4
     PAST_LEN = args.PAST_LEN if args.PAST_LEN else 10
     NUM_WORKERS = args.NUM_WORKERS if args.NUM_WORKERS else 1
+    ENCODER_PATH = args.ENCODER_PATH
+    DECODER_PATH = args.DECODER_PATH
+
 
     if not os.path.exists('scaler.pkl'):
         train_dataset = NDIVIViTDataloader(ndvi_3d,context,sequence_length=SEQ_LEN,pred_size=PRED_LEN,mode="train")
@@ -105,10 +111,12 @@ if __name__ == "__main__":
     val_dataloader = DataLoader(val_dataset,batch_size=BATCH_SIZE, shuffle=True,num_workers=NUM_WORKERS,collate_fn=custom_collate)
     test_dataloader = DataLoader(test_dataset,batch_size=BATCH_SIZE, shuffle=True,num_workers=NUM_WORKERS,collate_fn=custom_collate)
 
-    gru_model = Combine_model()
-    gru_model.to(device)
+    param =  [256 , 1,  output_size ]
+    modelencoder = Combine_model(GRU,ENCODER_PATH,DECODER_PATH,param,PRED_LEN,SEQ_LEN)
+    modelencoder.to(device)
 
-    history,gru_model = fit(EPOCHS, LR, gru_model, train_dataloader,val_dataloader)
+    history,modelencoder = fit(EPOCHS, LR, modelencoder, train_dataloader,val_dataloader)
     
-    torch.save(gru_model.state_dict(), f'cnn_gru_model_weights{datetime.now().strftime("%Y-%m-%d")}.pth')
-    np.save(f'grumodelhistory{datetime.now().strftime("%Y-%m-%d")}.npy', history,allow_pickle=True)
+    torch.save(modelencoder.state_dict(), f'gru_modelencoder_weights{datetime.now().strftime("%Y-%m-%d")}.pth')
+
+    np.save(f'gru_modelencoderhistory{datetime.now().strftime("%Y-%m-%d")}.npy', history,allow_pickle=True)

@@ -1,6 +1,7 @@
 from data.feature_extraction.NDVIViTDataloader import NDIVIViTDataloader
 from model.TemporalTransformer.NDVIViTEncoder import NDVIViTEncoder
-from model.TemporalTransformer.NDVIViTFT_model import NDVIViTFT
+from model.combine_model import Combine_model
+from model.lstm_model import LSTM
 from utils.traning import *
 from utils.process_data import get_data
 import pandas as pd
@@ -75,6 +76,9 @@ if __name__ == "__main__":
     parser.add_argument('--PRED_LEN', type=int, help='prediction length', default=4)
     parser.add_argument('--PAST_LEN', type=int, help='past length', default=10)
     parser.add_argument('--NUM_WORKERS', type=int, help='number of workers',default=1)
+    parser.add_argument('--ENCODER_PATH', type=str, help='number of workers',default="")
+    parser.add_argument('--DECODER_PATH', type=str, help='number of workers',default="")
+
     args = parser.parse_args()
 
 
@@ -85,6 +89,9 @@ if __name__ == "__main__":
     PRED_LEN = args.PRED_LEN if args.PRED_LEN else 4
     PAST_LEN = args.PAST_LEN if args.PAST_LEN else 10
     NUM_WORKERS = args.NUM_WORKERS if args.NUM_WORKERS else 1
+    ENCODER_PATH = args.ENCODER_PATH
+    DECODER_PATH = args.DECODER_PATH
+
 
     if not os.path.exists('scaler.pkl'):
         train_dataset = NDIVIViTDataloader(ndvi_3d,context,sequence_length=SEQ_LEN,pred_size=PRED_LEN,mode="train")
@@ -104,7 +111,8 @@ if __name__ == "__main__":
     val_dataloader = DataLoader(val_dataset,batch_size=BATCH_SIZE, shuffle=True,num_workers=NUM_WORKERS,collate_fn=custom_collate)
     test_dataloader = DataLoader(test_dataset,batch_size=BATCH_SIZE, shuffle=True,num_workers=NUM_WORKERS,collate_fn=custom_collate)
 
-    modelencoder = NDVIViTFT(pred_size=PRED_LEN,sequence_length=SEQ_LEN,dropout=0.3)
+    lstm_param =  [256 , 1,  output_size ]
+    modelencoder = Combine_model(LSTM,ENCODER_PATH,DECODER_PATH,lstm_param,PRED_LEN,SEQ_LEN)
     modelencoder.to(device)
 
     history,modelencoder = fit(EPOCHS, LR, modelencoder, train_dataloader,val_dataloader)

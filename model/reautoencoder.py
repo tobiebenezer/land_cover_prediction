@@ -24,7 +24,8 @@ class ResNet18Autoencoder(MBase):
         self.decoder = ResNet18Decoder(out_channels)
 
     def forward(self, x):
-        x4 = self.encoder(x)
+        x4,_ = self.encoder(x)
+        x4 = x4.reshape(self.encoder.output_dim)
         output = self.decoder(x4)
         return output
 
@@ -38,7 +39,6 @@ class ResNet18Autoencoder(MBase):
 
     def training_step(self,batch):
         X, (y ,_)= batch
-        print(X.shape)
         out = self(X.to(device))
         out = rearrange(out, 'b c h w -> (b c) h w')
         loss = F.mse_loss(out,X.to(device)) # calculating loss

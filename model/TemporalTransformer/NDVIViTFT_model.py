@@ -49,19 +49,23 @@ class NDVIViTFT(MBase):
                         dropout=dropout, num_layers=num_layers, past_size=past_size,
                         patch_size=num_patches, sequence_length=sequence_length,pred_size=pred_size)
 
-        self.decoder = NDVIViTDecoder(input_dim=output_size, output_channels=1, output_size=image_size, num_patches=num_patches)
+        self.decoder = NDVIViTDecoder(input_dim=output_size, output_channels=1, output_size=image_size)
 
-        self.encoder2 = Sen12MSViTEncoder(image_size=image_size, num_patches=num_patches, in_channels=in_channel, dim=dim, depth=2, heads=4, mlp_ratio=2.)
+        self.encoder2 = Sen12MSViTEncoder(image_size=image_size, in_channels=in_channel, dim=dim, depth=2, heads=4, mlp_ratio=2.)
 
 
 
     def forward(self,x, context):
-       
+        b,_,_,_ = x.shape
+        x = rearrange(x,'b s h w -> (b s) h w')
         encoded_output = self.encoder(x)
+
         # encoded_output2 = self.encoder2(x)
         temporal_output, attension = self.tft(encoded_output, context)
         output = self.decoder(temporal_output)
-        
+        output = rearrange(output,'(b s) c h w  -> b c s h w', b=b )
+        output = output[:,:, output.shape[2] - self.pred_size:,:,:]
+
         return output, attension
 
     def load_weights(self, encoder_weights, decoder_weights):
