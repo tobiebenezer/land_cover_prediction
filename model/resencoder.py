@@ -22,6 +22,8 @@ class ResNet18Encoder(nn.Module):
         self.layer3 = resnet.layer3
         self.layer4 = resnet.layer4
 
+        self.output_dim =[2048]
+
     def forward(self, x):
         x = rearrange(x, 'b h w -> b 1 h w')
         x = self.conv1(x)
@@ -33,6 +35,8 @@ class ResNet18Encoder(nn.Module):
         x = self.layer2(x)  # 128 channels
         x = self.layer3(x)  # 256 channels
         x4 = self.layer4(x)  # Latent space with 512 channels (final feature map)
-        
-        return x4  # Return only the latent space
+        self.output_dim = x4.shape
+        x4 = x4.view(x.size(0), -1)
+
+        return x4 , self.output_dim  # Return only the latent space
 

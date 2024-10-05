@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torchmetrics import MeanAbsoluteError, MeanSquaredError
+from einops import rearrange
 
 
 device = (
@@ -41,6 +42,18 @@ class MBase(nn.Module):
 
 def accuracy(outputs, labels):
     # return torch.mean(torch.abs((labels - outputs))) * 100
-    # val_mae = MeanAbsoluteError()
-    val_mse = MeanSquaredError().to(device)
-    return val_mse(outputs, labels)
+    val_mae = MeanAbsoluteError().to(device)
+    # val_mse = MeanSquaredError().to(device)
+    outputs_flat = outputs.reshape(-1)
+    labels_flat = labels.reshape(-1)
+
+    return val_mae(outputs_flat, labels_flat)
+
+def rmse(outputs, labels):
+    mse = accuracy(outputs, labels)
+    return torch.sqrt(mse)
+
+def mean_absolute_error(outputs, labels):
+    outputs_flat = outputs.reshape(outputs.size(0), -1)
+    labels_flat = labels.reshape(labels.size(0), -1)
+    return torch.mean(torch.abs(outputs_flat - labels_flat))

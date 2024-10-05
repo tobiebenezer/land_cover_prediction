@@ -13,10 +13,12 @@ class ResNet18Decoder(nn.Module):
         self.conv2 = nn.Conv2d(256, 128, kernel_size=3, padding=1)
         self.conv3 = nn.Conv2d(128, 64, kernel_size=3, padding=1)
         self.conv4 = nn.Conv2d(64, out_channels, kernel_size=3, padding=1)
+
         
         self.bn1 = nn.BatchNorm2d(256)
         self.bn2 = nn.BatchNorm2d(128)
         self.bn3 = nn.BatchNorm2d(64)
+
         
         # Add an extra convolutional layer to further upsample
         self.conv5 = nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1)

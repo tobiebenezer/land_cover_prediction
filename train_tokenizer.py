@@ -1,6 +1,7 @@
 from data.feature_extraction.data_loader import PatchDataset
 # from model.feature_extraction.unet2d import CNNtokenizer
 from model.TemporalTransformer.tokenizer import NDVIViTFT_tokenizer
+from model.reautoencoder import ResNet18Autoencoder
 from utils.traning import *
 from utils.process_data import get_data
 import pandas as pd
@@ -28,7 +29,8 @@ device = (
 #     (256, 512), 
 #     (512, 512),
 # ])
-tokenizer = NDVIViTFT_tokenizer()
+# tokenizer = NDVIViTFT_tokenizer(depth=2)
+tokenizer = ResNet18Autoencoder(in_channels=1, out_channels=1)
 tokenizer.to(device)
 
 ndvi_3d = np.load('64x64_patches.npy')

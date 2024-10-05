@@ -5,7 +5,7 @@ import torch
 from datetime import datetime
 import time
 import numpy as np
-
+import torch.optim as optim
 
 device = (
     "cuda"
@@ -15,6 +15,10 @@ device = (
     else "cpu"
 )
 print(f"Using {device} device")
+
+# Learning rate scheduler
+scheduler_training = optim.lr_scheduler.ReduceLROnPlateau
+
 
 #training
 @torch.no_grad()
@@ -34,10 +38,12 @@ def fit(epochs, lr, model, train_loader, val_loader=[], opt_func= torch.optim.SG
             best_loss = np.inf
             history = []
             
-            optimizer = opt_func(model.parameters(), lr)
-#             if scheduler:
-#                 scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
-                
+            optimizer = opt_func(model.parameters(), lr=lr ,weight_decay=1e-5)
+            if scheduler != None:
+                scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1, patience=5)
+            else:
+                scheduler = scheduler_training(optimizer,'min', factor=0.1, patience=5)
+
             for epoch in tqdm(range(epochs), desc='Epoch'):
                 #Training Phase
                 model.train()
@@ -51,11 +57,11 @@ def fit(epochs, lr, model, train_loader, val_loader=[], opt_func= torch.optim.SG
                     loss.backward()
                     optimizer.step()
                     
-                if scheduler:
-                    scheduler.step()
                     
                 # Validation phase   
                 result = evaluate(model, val_loader)
+                if scheduler:
+                    scheduler.step(result['val_loss'])
                 result['train_loss'] = torch.stack(train_losses).mean().item()
             
                 model.epoch_end(epoch, result)

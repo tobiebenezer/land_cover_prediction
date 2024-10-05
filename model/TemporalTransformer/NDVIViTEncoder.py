@@ -24,6 +24,7 @@ class NDVIViTEncoder(nn.Module):
         x = rearrange(x, 'b h w -> b  h w')
         b, _, _= x.shape
         x = self.patch_embedding(x)
+   
         x = rearrange(x, 'b  h -> b 1 h')
         # cls_tokens = repeat(self.cls_token, '() 1 d -> b 1 d', b=b)
         

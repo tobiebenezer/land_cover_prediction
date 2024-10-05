@@ -23,8 +23,8 @@ class TemporalFusionTransformer(nn.Module):
         self.input_embedding = nn.Linear(hidden_size, hidden_size)
         self.day_embedding = PositionalEncoder(hidden_size // 2, 1, dropout, max_len=366)
         self.month_embedding = PositionalEncoder(hidden_size // 2, 2, dropout, max_len=12)
-        self.encoder_lstm = nn.LSTM(hidden_size * (patch_size), hidden_size * (patch_size ), num_layers, dropout=dropout, batch_first=True)
-        self.decoder_lstm = nn.LSTM(hidden_size * (patch_size ), hidden_size * (patch_size), num_layers, dropout=dropout, batch_first=True)
+        self.encoder_lstm = nn.LSTM(hidden_size , hidden_size , num_layers, dropout=dropout, batch_first=True)
+        self.decoder_lstm = nn.LSTM(hidden_size, hidden_size , num_layers, dropout=dropout, batch_first=True)
         self.temporal_grn = GatedResidualNetwork(hidden_size * 2, hidden_size, hidden_size, dropout)
         self.final_grn = GatedResidualNetwork(hidden_size, hidden_size, output_size, dropout)
 
@@ -32,9 +32,9 @@ class TemporalFusionTransformer(nn.Module):
         self.add_norm = TemporalLayer(nn.BatchNorm1d(hidden_size))
         self.position_wise_feed_forward = GatedResidualNetwork(hidden_size, hidden_size, hidden_size, dropout)
         
-        self.context_grn = GatedResidualNetwork(hidden_size, hidden_size, hidden_size * (patch_size), dropout)
-        self.static_context_state_h = GatedResidualNetwork(hidden_size, hidden_size, hidden_size * (patch_size), dropout, is_temporal=False)
-        self.static_context_state_c = GatedResidualNetwork(hidden_size, hidden_size, hidden_size * (patch_size), dropout, is_temporal=False)
+        self.context_grn = GatedResidualNetwork(hidden_size, hidden_size, hidden_size , dropout)
+        self.static_context_state_h = GatedResidualNetwork(hidden_size, hidden_size, hidden_size , dropout, is_temporal=False)
+        self.static_context_state_c = GatedResidualNetwork(hidden_size, hidden_size, hidden_size , dropout, is_temporal=False)
         
         self.static_enrichment = GatedResidualNetwork(hidden_size * 2, hidden_size, hidden_size, dropout)
         self.multihead_attn = nn.MultiheadAttention(hidden_size, num_heads, dropout)
@@ -51,7 +51,6 @@ class TemporalFusionTransformer(nn.Module):
         b, _, _ = x.shape
         static_context_h = static_context_h[:b,:]
         static_context_c = static_context_c[:b,:]
-
         output, (state_h, state_c) = self.encoder_lstm(x, (static_context_h.unsqueeze(0).repeat(self.num_layers,1,1),
                              static_context_c.unsqueeze(0).repeat(self.num_layers,1,1)))
 
@@ -82,21 +81,20 @@ class TemporalFusionTransformer(nn.Module):
         return torch.triu(torch.ones(tensor.size(0), tensor.size(0)), diagonal=1).bool().to(tensor.device)
 
     def forward(self, x, context):
-        # print(x.shape,"x")
+        
         
         x = self.input_embedding(x)
-        b, s ,p ,_ = x.shape 
-        x = rearrange(x, "b s n h -> (b s) n h")
-        future_size = x.shape[0] * 0.75
+        b, _ = x.shape 
+        x = rearrange(x, "(b s) h -> b s h", s=(self.sequence_length - self.pred_size))
+        future_size = x.shape[1] * 0.75
         future_size = int(future_size)
         
         # print(context.shape)
         
         static_context_e, static_context_h, static_context_c = self.define_static_covariate_encoders(context)
+        past_input =x[:,:future_size, :]
+        future_input = x[:,future_size:, :]
         
-        past_input = rearrange(x[:future_size, :, :], "(b s) n h -> b s (n h)", b=b)
-        future_input = rearrange(x[future_size:, :, :], "(b s) n h -> b s (n h)", b=b)
-     
         encoder_output, state_h, state_c = self.define_lstm_encoder(past_input, static_context_h, static_context_c)       
         decoder_output = self.define_lstm_decoder(future_input, state_h, state_c)
         
@@ -107,19 +105,19 @@ class TemporalFusionTransformer(nn.Module):
         
         # print(lstm_outputs.shape,"lstm_outputs")
          
-        lstm_outputs = rearrange(lstm_outputs, "b s (n h) -> b (s n) h", h=self.hidden_size)
+        lstm_outputs = rearrange(lstm_outputs, "b s h -> b s h", h=self.hidden_size)
         
         # print(lstm_outputs.shape,"lstm_outputs")
         
         gated_outputs = self.gated_skip_connection(lstm_outputs)
-        gated_outputs = rearrange(gated_outputs, "b (s n) h -> (b s) n h", s=s)
+        # gated_outputs = rearrange(gated_outputs, "b s h -> b  s h", s=s)
         
         # print(gated_outputs.shape,"gated_outputs")
         # print(x.shape,"x")
        
         temporal_feature_outputs = self.add_norm(x+ gated_outputs)
 
-        static_context_e_reshaped = rearrange(static_context_e, "b (s h) -> b s h", s=gated_outputs.shape[1] ) #.reshape(batch x sequence, patch, hidden)
+        static_context_e_reshaped = rearrange(static_context_e, "(b s) h -> b s h", s=gated_outputs.shape[1] ) #.reshape(batch x sequence, patch, hidden)
         static_enrichment_outputs = self.static_enrichment(torch.cat([temporal_feature_outputs, static_context_e_reshaped], dim=-1))
 
         mask = self.get_mask(static_enrichment_outputs)
@@ -148,7 +146,7 @@ class TemporalFusionTransformer(nn.Module):
 
         predictionsize =  int( norm_outputs.shape[0] - (self.pred_size * b))
         output = self.output(norm_outputs[ predictionsize:,:, :]).view(-1, self.output_size)
-        output = rearrange(output, "(b s p) h -> b s p h", b=b, s=self.pred_size)
+        output = rearrange(output, "(b s) h -> (b s) h", b=b)
         
         # print(predictionsize,"predictionsize")       
        
