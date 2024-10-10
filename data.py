@@ -1,5 +1,7 @@
 from utils.data_downloader import NDVIGEE_Extractor, Process_TifDATA
 import argparse
+import pandas as pd
+import os
 
 
 if __name__ == "__main__":
@@ -24,26 +26,13 @@ if __name__ == "__main__":
     IMG_COLLECTION = args.IMG_COLLECTION if args.IMG_COLLECTION else 'MODIS/061/MOD13A1'
 
     # Download NDVI data from Google Earth Engine
-    ndvi_extractor = NDVIGEE_Extractor(START_DATE, END_DATE, OUTPUT_FILE, IMG_COLLECTION)
+    os.makedirs(ZIP_DIR, exist_ok=True)
+    ndvi_extractor = NDVIGEE_Extractor(START_DATE, END_DATE, OUTPUT_FILE, ZIP_DIR, IMG_COLLECTION)
     ndvi_extractor()
     
     # Process downloaded GeoTIFF 
     process_tif = Process_TifDATA(EXTRACTED_DIR, ZIP_DIR, LOG_FILE)
 
-    df = pd.read_csv(OUTPUT_FILE)
-    os.makedirs(ZIP_DIR, exist_ok=True)
-
-    # Loop over each row in the DataFrame and process each image
-    for index, row in df.iterrows():
-        image_number = row['Image Number']
-        sub_region = row['Sub-region']
-        start_date = row['Start Date']
-        end_date = row['End Date']
-        url = row['Download URL']
-
-        # Download and save the image
-        tifdata.download_image(url, image_number, sub_region, start_date, end_date)
-
+    process_tif()
     print("All images processed and saved to disk.")
 
-    process_tif()

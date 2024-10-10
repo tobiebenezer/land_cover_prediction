@@ -13,16 +13,20 @@ import pandas as pd
 from rasterio.plot import show
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
+import datetime
+import time
 from tqdm import tqdm
+import re
 
 ee.Initialize()
 
 class NDVIGEE_Extractor:
-    def __init__(self, start, end, output_file, img_collection='MODIS/061/MOD13A1'):
+    def __init__(self, start, end, output_file, output_dir, img_collection='MODIS/061/MOD13A1'):
         self.start = start
         self.end = end
         self.output_file = output_file
         self.img_collection = img_collection
+        self.output_dir = output_dir
         
         # Define the area of interest (Zambia)
         self.aoi = ee.Geometry.Polygon(
@@ -71,10 +75,50 @@ class NDVIGEE_Extractor:
                 'fileFormat': 'GeoTIFF',
             })
 
-            writer.writerow([count, sub_count, start_date, end_date, url])
 
+            is_downloaded = self.get_download_image(url,count,sub_count,start_date, end_date)
+
+            if is_downloaded:
+                writer.writerow([count, sub_count, start_date, end_date, url])
+                time.sleep(1)
+                
         except ee.EEException as e:
             print(f"Failed to download image for sub-region {sub_count}: {e}")
+
+    def get_download_image(self,url, image_number, sub_region, start_date, end_date):
+        try:
+            # Send a GET request to download the image
+            response = requests.get(url, stream=True)
+            
+            if not (response.status_code >= 200 and response.status_code < 300):
+                print('failed')
+                return False  
+
+            response.raise_for_status() 
+            content_disposition = response.headers.get('Content-Disposition')
+            if content_disposition:
+                filename = re.findall("filename=(.+)", content_disposition)[0].strip('"')
+            else:
+                # If Content-Disposition is not available, extract filename from URL
+                filename = unquote(url.split('/')[-1])
+
+            # Extract the date from the filename
+            start_date = filename.split('.')[0]
+            # Define the file name
+            file_name = f"NDVI_Image_{image_number}_Sub_{sub_region}_{start_date}_to_{end_date}.zip"
+            file_path = os.path.join(self.output_dir, file_name)
+
+            # Save the image to disk
+            with open(file_path, 'wb') as file:
+                for chunk in response.iter_content(chunk_size=8192):
+                    file.write(chunk)
+
+            # print(f"Downloaded and saved: {file_name}")
+            return True
+
+        except requests.exceptions.RequestException as e:
+            print(f"Failed to download {url}: {e}")
+            return False
 
     def write_url_img_year(self, year):
         date_ranges = self.generate_16_day_intervals(year)
@@ -83,7 +127,7 @@ class NDVIGEE_Extractor:
         sub_regions = self.split_aoi()
 
         # Open the CSV file for writing
-        with open(self.output_file, mode= 'w', newline='') as file:
+        with open(self.output_file, mode= 'a+', newline='') as file:
             writer = csv.writer(file)
             # Write the header row
             writer.writerow(['Image Number', 'Sub-region', 'Start Date', 'End Date', 'Download URL'])
@@ -126,37 +170,10 @@ class Process_TifDATA:
         os.makedirs(extracted_dir, exist_ok=True)
         
         if not os.path.exists(log_file):
-            with open(log_file, mode='w', newline='') as file:
+            with open(log_file, mode='a+', newline='') as file:
                 writer = csv.writer(file)
                 writer.writerow(['File Name', 'Date', 'Region Number'])
                 
-    def download_image(self,url, image_number, sub_region, start_date, end_date):
-        try:
-            # Send a GET request to download the image
-            response = requests.get(url, stream=True)
-            response.raise_for_status() 
-            content_disposition = response.headers.get('Content-Disposition')
-            if content_disposition:
-                filename = re.findall("filename=(.+)", content_disposition)[0].strip('"')
-            else:
-                # If Content-Disposition is not available, extract filename from URL
-                filename = unquote(url.split('/')[-1])
-
-            # Extract the date from the filename
-            start_date = filename.split('.')[0]
-            # Define the file name
-            file_name = f"NDVI_Image_{image_number}_Sub_{sub_region}_{start_date}_to_{end_date}.zip"
-            file_path = os.path.join(output_dir, file_name)
-
-            # Save the image to disk
-            with open(file_path, 'wb') as file:
-                for chunk in response.iter_content(chunk_size=8192):
-                    file.write(chunk)
-
-            print(f"Downloaded and saved: {file_name}")
-
-        except requests.exceptions.RequestException as e:
-            print(f"Failed to download {url}: {e}")
 
     def extract_zip(self, zip_file_path, extract_to):
         try:
