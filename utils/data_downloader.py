@@ -83,7 +83,7 @@ class NDVIGEE_Extractor:
         sub_regions = self.split_aoi()
 
         # Open the CSV file for writing
-        with open(self.output_file, mode='w', newline='') as file:
+        with open(self.output_file, mode= 'w', newline='') as file:
             writer = csv.writer(file)
             # Write the header row
             writer.writerow(['Image Number', 'Sub-region', 'Start Date', 'End Date', 'Download URL'])
