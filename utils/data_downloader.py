@@ -14,6 +14,7 @@ from rasterio.plot import show
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 import datetime
+import time
 from tqdm import tqdm
 import re
 
@@ -74,10 +75,13 @@ class NDVIGEE_Extractor:
                 'fileFormat': 'GeoTIFF',
             })
 
-            writer.writerow([count, sub_count, start_date, end_date, url])
 
-            self.get_download_image(url,count,sub_count,start_date, end_date)
+            is_downloaded = self.get_download_image(url,count,sub_count,start_date, end_date)
 
+            if is_downloaded:
+                writer.writerow([count, sub_count, start_date, end_date, url])
+                time.sleep(1)
+                
         except ee.EEException as e:
             print(f"Failed to download image for sub-region {sub_count}: {e}")
 
@@ -85,6 +89,11 @@ class NDVIGEE_Extractor:
         try:
             # Send a GET request to download the image
             response = requests.get(url, stream=True)
+            
+            if not (response.status_code >= 200 and response.status_code < 300):
+                print('failed')
+                return False  
+
             response.raise_for_status() 
             content_disposition = response.headers.get('Content-Disposition')
             if content_disposition:
@@ -105,9 +114,11 @@ class NDVIGEE_Extractor:
                     file.write(chunk)
 
             # print(f"Downloaded and saved: {file_name}")
+            return True
 
         except requests.exceptions.RequestException as e:
             print(f"Failed to download {url}: {e}")
+            return False
 
     def write_url_img_year(self, year):
         date_ranges = self.generate_16_day_intervals(year)
