@@ -11,3 +11,4 @@ log.txt
 *.csv
 zip_data*
 extracted_data*
+Trained_Models/*
