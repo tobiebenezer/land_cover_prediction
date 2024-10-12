@@ -1,5 +1,5 @@
 from data.feature_extraction.data_loader import PatchDataset
-from data.feature_extraction.NDVIDataset import NDVIDataset
+from data.feature_extraction.autoencoder_dataloader import NDVIDataset
 from model.feature_extraction.unet2d import CNNtokenizer
 from model.TemporalTransformer.tokenizer import NDVIViTFT_tokenizer
 from model.reautoencoder import ResNet18Autoencoder
