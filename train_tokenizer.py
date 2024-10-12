@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 from torch.utils.data import Dataset, DataLoader
+import torch.optim as optim
 from data.feature_extraction.NDVIViTDataloader import NDIVIViTDataloader
 import argparse
 
@@ -89,12 +90,13 @@ if __name__ == "__main__":
     test_size = TEST_SIZE
 
     tokenizer = Tokenizer[MODEL_NAME].to(device)
-    
+
+    optimizer = optim.Adam
     # Create the dataloaders
     train_dataloader, val_dataloader, test_dataloader = get_dataloaders(csv_file, data_dir, NDVIDataset, 
             batch_size=batch_size, patch_size=patch_size, image_size=image_size, val_size=val_size, test_size=test_size)
       
-    history,tokenizer = fit(EPOCHS, LR, tokenizer, train_dataloader,val_dataloader)
+    history,tokenizer = fit(EPOCHS, LR, tokenizer, train_dataloader,val_dataloader, optimizer,accumulation_steps=3)
     
     torch.save(tokenizer.state_dict(), f'{MODEL_NAME}_weights{datetime.now().strftime("%Y-%m-%d")}.pth')
     tokenizer.save_weights(f'{MODEL_NAME}_encoder_weights{datetime.now().strftime("%Y-%m-%d")}.pth', f'{MODEL_NAME}_decoder_weights{datetime.now().strftime("%Y-%m-%d")}.pth')
