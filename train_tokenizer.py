@@ -27,7 +27,7 @@ device = (
 
 Tokenizer = {
     'CNNtokenizer': CNNtokenizer(),
-    'custom_CNNtokenizer': custom_CNNtokenizer(dim = [
+    'custom_CNNtokenizer': CNNtokenizer(dim = [
                                             (1, 64),    
                                             (64, 64),  
                                             (64, 128),  
