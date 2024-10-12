@@ -12,6 +12,7 @@ from torch.utils.data import Dataset, DataLoader
 import torch.optim as optim
 from data.feature_extraction.NDVIViTDataloader import NDIVIViTDataloader
 import argparse
+from utils.dataloader import get_dataloaders
 
 
 
@@ -62,6 +63,7 @@ if __name__ == "__main__":
     parser.add_argument('--VAL_SIZE', type=float, help='validation size',default=0.15)
     parser.add_argument('--TEST_SIZE', type=float, help='test size',default=0.15)
     parser.add_argument('--MODEL_NAME', type=str, help='model name',default='cnn_tokenizer')
+    parser.add_argument('--ACCUMULATION_STEPS', type=int, help='accumulation steps',default=3)
 
 
     args = parser.parse_args()
@@ -78,6 +80,7 @@ if __name__ == "__main__":
     VAL_SIZE = args.VAL_SIZE if args.VAL_SIZE else 0.15
     TEST_SIZE = args.TEST_SIZE if args.TEST_SIZE else 0.15
     MODEL_NAME = args.MODEL_NAME if args.MODEL_NAME else 'cnn_tokenizer'
+    ACCUMULATION_STEPS = args.ACCUMULATION_STEPS if args.ACCUMULATION_STEPS else 3
     
 
     # Load the data
@@ -96,7 +99,7 @@ if __name__ == "__main__":
     train_dataloader, val_dataloader, test_dataloader = get_dataloaders(csv_file, data_dir, NDVIDataset, 
             batch_size=batch_size, patch_size=patch_size, image_size=image_size, val_size=val_size, test_size=test_size)
       
-    history,tokenizer = fit(EPOCHS, LR, tokenizer, train_dataloader,val_dataloader, optimizer,accumulation_steps=3)
+    history,tokenizer = fit(EPOCHS, LR, tokenizer, train_dataloader,val_dataloader, optimizer,accumulation_steps=ACCUMULATION_STEPS)
     
     torch.save(tokenizer.state_dict(), f'{MODEL_NAME}_weights{datetime.now().strftime("%Y-%m-%d")}.pth')
     tokenizer.save_weights(f'{MODEL_NAME}_encoder_weights{datetime.now().strftime("%Y-%m-%d")}.pth', f'{MODEL_NAME}_decoder_weights{datetime.now().strftime("%Y-%m-%d")}.pth')
