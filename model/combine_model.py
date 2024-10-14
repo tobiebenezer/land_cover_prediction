@@ -23,35 +23,32 @@ device = (
 )
 
 class Combine_model(MBase):
-    def __init__(self, model,encoder_weight_path,decoder_weights_path,model_param,pred_size,sequence_length, in_channels=1, out_channels=1):
+    def __init__(self, model,ae_model,input_size,model_param, pred_size,sequence_length, in_channels=1, out_channels=1):
         super(Combine_model, self).__init__()
 
         self.pred_size = pred_size
-        encoder = ResNet18Encoder(in_channels)
-        decoder = ResNet18Decoder(out_channels)
-        encoder.load_state_dict(torch.load(os.path.abspath(f"{ROOT_DIR}/../{encoder_weight_path}")))
-        decoder.load_state_dict(torch.load(os.path.abspath(f"{ROOT_DIR}/../{decoder_weights_path}")))
-        self.encoder = encoder
-        self.decoder = decoder
-        model_param[-1] = encoder.output_dim[-1]
-        self.model = model(*model_param,input_size = encoder.output_dim[-1],pred_size=pred_size, sequence_length=sequence_length).to(device)  
+        self.ae_model = ae_model
+        model_param[-1] = input_size
+        self.model = model(*model_param, input_size = input_size,pred_size=pred_size, sequence_length=sequence_length).to(device)  
           
 
     def forward(self, x):
-        b,s,_,_ = x.shape
-        x = rearrange(x,'b s h w -> (b s) h w')
+        b,s,p,_,_,_ = x.shape
+        x = rearrange(x,'b s p c h w -> b p s c h w')
+        x = rearrange(x,'b p s c h w -> (b p s) c h w')
         with torch.no_grad():
-            x4,x_dim = self.encoder(x)
+            x4 = self.ae_modelencoder(x)
 
+        x4 = rearrange(x4, '(b p s) c h w->(b p) s (c h w)', s=s)
         latent_space_pred = self.model(x4)
-        latent_space_pred = latent_space_pred.reshape([*x_dim])
+        # latent_space_pred = latent_space_pred.reshape([*x_dim])
 
-        with torch.no_grad():
-            output = self.decoder(latent_space_pred)
+        # with torch.no_grad():
+        #     output = self.ae_modeldecoder(latent_space_pred)
 
-        output = rearrange(output,'(b s) c h w  -> b c s h w', b=b )
-        output = output[:,:, output.shape[2] - self.pred_size:,:,:]
-        return output
+        # output = rearrange(output,'(b s) c h w  -> b c s h w', b=b )
+        # output = output[:,:, output.shape[2] - self.pred_size:,:,:]
+        return latent_space_pred, x4
 
     def load_weights(self, encoder_weights, decoder_weights):
         self.encoder.load_state_dict(torch.load(encoder_weights))

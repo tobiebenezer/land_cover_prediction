@@ -35,10 +35,10 @@ class LSTM(nn.Module):
 
     def forward(self, x):
       
-        b, _ = x.shape
-        x = rearrange(x,'(b s) h -> b s  h', s = (self.sequence_length - self.pred_size))
+        b, _, _ = x.shape
+        # x = rearrange(x,'(b s) h -> b s  h', s = (self.sequence_length - self.pred_size))
     
-        batch, seq,_ = x.shape
+        # batch, seq,_ = x.shape
        
         h0 = self.h0.expand(-1, batch, -1).contiguous()
         c0 = self.c0.expand(-1, batch, -1).contiguous()
@@ -55,7 +55,7 @@ class LSTM(nn.Module):
         # Final output layer
        
         out = self.fc3(out)  
-        out = rearrange(out, "b s h -> (b s) h")
+        # out = rearrange(out, "b s h -> (b s) h")
 
         return out
 
