@@ -46,7 +46,7 @@ class MBase(nn.Module):
         # Compute MAE directly using pre-initialized metric
         outputs_flat = outputs.reshape(-1)
         labels_flat = labels.reshape(-1)
-        return self.val_mae(outputs_flat, labels_flat)
+        return 1 - self.val_mae(outputs_flat, labels_flat)
 
 
 def accuracy(outputs, labels):

@@ -26,7 +26,7 @@ class ResNet18Encoder(nn.Module):
         self.output_dim =[2048]
 
     def forward(self, x):
-        x = rearrange(x, 'b h w -> b 1 h w')
+        # x = rearrange(x, 'b h w -> b 1 h w')
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)

@@ -1,5 +1,5 @@
 from data.feature_extraction.data_loader import PatchDataset
-from data.feature_extraction.autoencoder_dataloader import NDVIDataset
+from data.autoencoder_dataloader import NDVIDataset
 from model.feature_extraction.unet2d import CNNtokenizer
 from model.TemporalTransformer.tokenizer import NDVIViTFT_tokenizer
 from model.reautoencoder import ResNet18Autoencoder
@@ -100,7 +100,7 @@ if __name__ == "__main__":
     train_dataloader, val_dataloader, test_dataloader = get_dataloaders(csv_file, data_dir, NDVIDataset, 
             batch_size=batch_size, patch_size=patch_size, image_size=image_size, val_size=val_size, test_size=test_size)
       
-    history,tokenizer = fit(EPOCHS, LR, tokenizer, train_dataloader,val_dataloader, optimizer,accumulation_steps=ACCUMULATION_STEPS)
+    history,tokenizer = fit(EPOCHS, LR, tokenizer, train_dataloader,val_dataloader, optimizer, model_name=MODEL_NAME, accumulation_steps=ACCUMULATION_STEPS)
     
     torch.save(tokenizer.state_dict(), f'{MODEL_NAME}_weights{datetime.now().strftime("%Y-%m-%d")}.pth')
     tokenizer.save_weights(f'{MODEL_NAME}_encoder_weights{datetime.now().strftime("%Y-%m-%d")}.pth', f'{MODEL_NAME}_decoder_weights{datetime.now().strftime("%Y-%m-%d")}.pth')

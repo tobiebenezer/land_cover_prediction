@@ -27,7 +27,7 @@ def evaluate(model, val_loader, device):
     return model.validation_epoch_end(outputs)
 
 
-def fit(epochs, lr, model, train_loader, val_loader=None, opt_func=torch.optim.SGD, scheduler=None, accumulation_steps=1):
+def fit(epochs, lr, model, train_loader, val_loader=None, opt_func=torch.optim.SGD, scheduler=None, model_name='train', accumulation_steps=1):
     since = time.time()
     
     # Create a temporary directory to save training checkpoints
@@ -89,7 +89,7 @@ def fit(epochs, lr, model, train_loader, val_loader=None, opt_func=torch.optim.S
         if not os.path.isdir(final_path):
             os.mkdir(final_path)
             
-        final_path = f"{final_path}/m_{datetime.now().strftime('%Y-%m-%d')}.pt"
+        final_path = f"{final_path}/{model_name}_m_{datetime.now().strftime('%Y-%m-%d')}.pt"
         torch.save(model.state_dict(), final_path)
         print(f"Saved model at {final_path}")
         

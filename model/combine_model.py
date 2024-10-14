@@ -23,28 +23,31 @@ device = (
 )
 
 class Combine_model(MBase):
-    def __init__(self, model,ae_model,input_size,model_param, pred_size,sequence_length, in_channels=1, out_channels=1):
+    def __init__(self, model,encoder,input_size,model_param, pred_size,sequence_length, in_channels=1, out_channels=1):
         super(Combine_model, self).__init__()
 
         self.pred_size = pred_size
-        self.ae_model = ae_model
+        self.ae_model = encoder['model']()
+        self.ae_model.load_state_dict(torch.load(encoder['parameter_path']))
+        self.ae_model.to(encoder['device'])
+
         model_param[-1] = input_size
-        self.model = model(*model_param, input_size = input_size,pred_size=pred_size, sequence_length=sequence_length).to(device)  
-          
+        self.model = model['model'](*model_param, input_size = input_size,pred_size=pred_size, sequence_length=sequence_length).to(device)  
+        self.model.to(model['device'])
 
     def forward(self, x):
         b,s,p,_,_,_ = x.shape
         x = rearrange(x,'b s p c h w -> b p s c h w')
         x = rearrange(x,'b p s c h w -> (b p s) c h w')
         with torch.no_grad():
-            x4 = self.ae_modelencoder(x)
+            x4 = self.ae_model.encoder(x)
 
-        x4 = rearrange(x4, '(b p s) c h w->(b p) s (c h w)', s=s)
+        x4 = rearrange(x4, '(b p s) c h w->(b p) s (c h w)', s=s, b=b, p=p)
         latent_space_pred = self.model(x4)
         # latent_space_pred = latent_space_pred.reshape([*x_dim])
 
         # with torch.no_grad():
-        #     output = self.ae_modeldecoder(latent_space_pred)
+        #     output = self.ae_model.decoder(latent_space_pred)
 
         # output = rearrange(output,'(b s) c h w  -> b c s h w', b=b )
         # output = output[:,:, output.shape[2] - self.pred_size:,:,:]

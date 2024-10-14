@@ -32,6 +32,7 @@ class Encoder(nn.Module):
         self.enc2 = nn.Conv2d(32, 64, kernel_size=5, stride=2, padding=2) 
         self.bn2 = nn.BatchNorm2d(64)  
         self.enc3 = nn.Conv2d(64, 128, kernel_size=5, stride=2, padding=2)  
+        self.bn3 = nn.BatchNorm2d(128)
 
         self.leaky_relu = nn.LeakyReLU(0.2)
 
@@ -108,7 +109,7 @@ class CAE(MBase):
         # Loss and accuracy
         # loss = mse_loss(out, y)
         loss = combined_loss(out, y)
-        acc = self.accuracy(out, y)
+        acc = self.accuracy(out, y,device)
 
         return {'val_loss': loss.detach(), 'val_accuracy': acc}
 
@@ -123,7 +124,7 @@ class CAE(MBase):
 
         return {'val_loss': epoch_loss.item(), 'val_accuracy': epoch_acc.item()}
     
-    def accuracy(outputs, labels, device):
+    def accuracy(self, outputs, labels, device):
         outputs_flat = outputs.reshape(-1)
         labels_flat = labels.reshape(-1)
         return 1 - MeanAbsoluteError().to(device)(outputs_flat, labels_flat)
