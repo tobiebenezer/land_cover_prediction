@@ -29,8 +29,8 @@ class GRU(nn.Module):
         self.h0 = nn.Parameter(torch.randn(num_layers, 1, hidden_size))
         
     def forward(self, x):
-        b, _ = x.shape
-        x = rearrange(x,'(b s) h -> b s  h', s = (self.sequence_length - self.pred_size))
+        # b, _ = x.shape
+        # x = rearrange(x,'(b s) h -> b s  h', s = (self.sequence_length - self.pred_size))
     
         batch, seq,_ = x.shape
         

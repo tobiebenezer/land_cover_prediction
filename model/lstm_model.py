@@ -35,10 +35,10 @@ class LSTM(nn.Module):
 
     def forward(self, x):
       
-        b, _ = x.shape
-        x = rearrange(x,'(b s) h -> b s  h', s = (self.sequence_length - self.pred_size))
+        b, _, _ = x.shape
+        # x = rearrange(x,'(b s) h -> b s  h', s = (self.sequence_length - self.pred_size))
     
-        batch, seq,_ = x.shape
+        # batch, seq,_ = x.shape
        
         h0 = self.h0.expand(-1, batch, -1).contiguous()
         c0 = self.c0.expand(-1, batch, -1).contiguous()
@@ -55,24 +55,8 @@ class LSTM(nn.Module):
         # Final output layer
        
         out = self.fc3(out)  
-        out = rearrange(out, "b s h -> (b s) h")
+        # out = rearrange(out, "b s h -> (b s) h")
 
         return out
 
 
-
-# Example usage:
-# input_size = patch_height * patch_width
-# hidden_size = 128
-# num_layers = 3
-# output_size = patch_height * patch_width
-# sequence_length = 10
-
-# srnn_model = ComplexSRNN(input_size, hidden_size, num_layers, output_size)
-# lstm_model = ComplexLSTM(input_size, hidden_size, num_layers, output_size)
-# gru_model = ComplexGRU(input_size, hidden_size, num_layers, output_size)
-
-# x = torch.randn(32, sequence_length - 1, input_size)  # (batch_size, sequence_length, input_size)
-# y_pred_srnn = srnn_model(x)
-# y_pred_lstm = lstm_model(x)
-# y_pred_gru = gru_model(x)

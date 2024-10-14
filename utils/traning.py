@@ -40,7 +40,7 @@ def fit(epochs, lr, model, train_loader, val_loader=None, opt_func=torch.optim.S
 
         optimizer = opt_func(model.parameters(), lr=lr, weight_decay=1e-5)
         if scheduler is None:
-            scheduler = scheduler_training(optimizer, 'min', factor=0.1, patience=5)
+            scheduler = scheduler_training(optimizer, mode='min', factor=0.1, patience=7)
 
         for epoch in tqdm(range(epochs), desc='Epoch'):
             # Training Phase
@@ -67,7 +67,7 @@ def fit(epochs, lr, model, train_loader, val_loader=None, opt_func=torch.optim.S
                 result = {'val_loss': 0, 'val_accuracy': 0}
             
             result['train_loss'] = np.mean(train_losses)
-            model.epoch_end(epoch, result)
+            model.epoch_end(epoch, result,scheduler.get_last_lr())
             history.append(result)
             
             # Save the best model
@@ -119,22 +119,24 @@ def fit(epochs, lr, model, train_loader, val_loader=None, opt_func=torch.optim.S
             
 #             optimizer = opt_func(model.parameters(), lr=lr ,weight_decay=1e-5)
 #             if scheduler != None:
-#                 scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1, patience=5)
+#                 scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
 #             else:
-#                 scheduler = scheduler_training(optimizer,'min', factor=0.1, patience=5)
+#                 scheduler = scheduler_training(optimizer,'min', factor=0.1)
 
 #             for epoch in tqdm(range(epochs), desc='Epoch'):
 #                 #Training Phase
 #                 model.train()
 #                 train_losses = []
 #                 for batch in train_loader:
-#                     loss = model.training_step(batch)
+#                     print('ok')
+#                     loss = model.training_step(batch, device)
 #                     train_losses.append(loss)
-#                     break
+                    
 #                     #Backpropagation
 #                     optimizer.zero_grad()
 #                     loss.backward()
 #                     optimizer.step()
+#                     print('done')
                     
                     
 #                 # Validation phase   

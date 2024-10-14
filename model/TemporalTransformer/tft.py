@@ -20,7 +20,7 @@ class TemporalFusionTransformer(nn.Module):
 
         assert self.past_size < self.sequence_length, "past_size should be less than sequence_length"
 
-        self.input_embedding = nn.Linear(hidden_size, hidden_size)
+        self.input_embedding = nn.Linear(input_size, hidden_size)
         self.day_embedding = PositionalEncoder(hidden_size // 2, 1, dropout, max_len=366)
         self.month_embedding = PositionalEncoder(hidden_size // 2, 2, dropout, max_len=12)
         self.encoder_lstm = nn.LSTM(hidden_size , hidden_size , num_layers, dropout=dropout, batch_first=True)
@@ -81,8 +81,8 @@ class TemporalFusionTransformer(nn.Module):
         return torch.triu(torch.ones(tensor.size(0), tensor.size(0)), diagonal=1).bool().to(tensor.device)
 
     def forward(self, x, context):
-        
-        
+        b, s, _ = x.shape
+        x = rearrange(x,'b s h -> (b s) h')
         x = self.input_embedding(x)
         b, _ = x.shape 
         x = rearrange(x, "(b s) h -> b s h", s=(self.sequence_length - self.pred_size))

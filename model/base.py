@@ -39,9 +39,9 @@ class MBase(nn.Module):
         epoch_acc = torch.stack(batch_accuracy).mean()
         return {'val_loss': epoch_loss.item(), 'val_accuracy': epoch_acc.item()}
     
-    def epoch_end(self, epoch, result):
-        print(f"Epoch [{epoch}], train_loss: {result['train_loss']:.4f}, val_loss: {result['val_loss']:.4f}, val_acc: {result['val_accuracy']:.4f}")
-
+    def epoch_end(self, epoch, result,LR=1e-4):
+        print(f"Epoch [{epoch}], train_loss: {result['train_loss']:.4f}, val_loss: {result['val_loss']:.4f}, val_acc: {result['val_accuracy']:.4f}, LR: {LR}")
+  
     def accuracy(self, outputs, labels):
         # Compute MAE directly using pre-initialized metric
         outputs_flat = outputs.reshape(-1)
