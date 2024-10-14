@@ -60,19 +60,3 @@ class LSTM(nn.Module):
         return out
 
 
-
-# Example usage:
-# input_size = patch_height * patch_width
-# hidden_size = 128
-# num_layers = 3
-# output_size = patch_height * patch_width
-# sequence_length = 10
-
-# srnn_model = ComplexSRNN(input_size, hidden_size, num_layers, output_size)
-# lstm_model = ComplexLSTM(input_size, hidden_size, num_layers, output_size)
-# gru_model = ComplexGRU(input_size, hidden_size, num_layers, output_size)
-
-# x = torch.randn(32, sequence_length - 1, input_size)  # (batch_size, sequence_length, input_size)
-# y_pred_srnn = srnn_model(x)
-# y_pred_lstm = lstm_model(x)
-# y_pred_gru = gru_model(x)

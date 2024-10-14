@@ -14,9 +14,14 @@ def split_dataset(dataset, val_size=0.15, test_size=0.15):
 
     return train_set, val_set, test_set
 
-def get_dataloaders(csv_file, data_dir, NDVIDataset,batch_size=16, patch_size=16, image_size=512, transform=None, val_size=0.15, test_size=0.15, shuffle=True):
+def get_dataloaders(csv_file, data_dir, NDVIDataset,batch_size=16, patch_size=16, image_size=512,
+             transform=None, val_size=0.15, test_size=0.15, shuffle=True,sequence_len=None,pred_len=None):
     # Initialize the full dataset
-    dataset = NDVIDataset(csv_file=csv_file, data_dir=data_dir, patch_size=patch_size, image_size=image_size, transform=transform)
+    if sequence_len is not None and pred_len is not None:
+        dataset = NDVIDataset(csv_file=csv_file, data_dir=data_dir, patch_size=patch_size, image_size=image_size, transform=transform)
+    else:
+        dataset = NDVIDataset(csv_file=csv_file, data_dir=data_dir, patch_size=patch_size, image_size=image_size, transform=transform, x_sequence_length=sequence_len, y_sequence_length=pred_len)
+
 
     # Split into train, validation, and test sets
     train_set, val_set, test_set = split_dataset(dataset, val_size=val_size, test_size=test_size)

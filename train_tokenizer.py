@@ -56,6 +56,8 @@ if __name__ == "__main__":
     parser.add_argument('--EPOCHS', type=int, help='number of epochs')
     parser.add_argument('--LR', type=float, help='learning rate')
     parser.add_argument('--BATCH_SIZE', type=int, help='batch size')
+    parser.add_argument('--IMAGES_LOG', type=str, help='path to images log',default='processed_images_log.csv')
+    parser.add_argument('--DATA_DIR', type=str, help='path to data directory',default='extracted_data')
     parser.add_argument('--NUM_WORKERS', type=int, help='number of workers',default=1)
     parser.add_argument('--IMG_LOG', type=str, help='image log',default='processed_images_log.csv')
     parser.add_argument('--DATA_DIR', type=str, help='data directory',default='extracted_data')
@@ -104,19 +106,4 @@ if __name__ == "__main__":
     
     torch.save(tokenizer.state_dict(), f'{MODEL_NAME}_weights{datetime.now().strftime("%Y-%m-%d")}.pth')
     tokenizer.save_weights(f'{MODEL_NAME}_encoder_weights{datetime.now().strftime("%Y-%m-%d")}.pth', f'{MODEL_NAME}_decoder_weights{datetime.now().strftime("%Y-%m-%d")}.pth')
-
-
-
-
-# ndvi_3d = np.load('64x64_patches.npy')
-
-# class Scaler():
-#     def transform(self,x):
-#         return x/10000
-    
-#     def fit_transform(self,x):
-#         return x/10000
-
-#     def inverse_transform(self,x):
-#         return x*10000
     np.save(f'{MODEL_NAME}_tokenizerhistory{datetime.now().strftime("%Y-%m-%d")}.npy', history,allow_pickle=True)
