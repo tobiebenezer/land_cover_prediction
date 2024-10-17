@@ -1,7 +1,7 @@
 from data.ndvi_dataset import NDVIDataset
 import torch
 from torch.utils.data import Dataset, DataLoader
-from model.combine_model import  Combine_model
+from model.combine_model import  Combine_model, Combine_tansformer_model
 from model.lstm_model import LSTM
 from model.rnn_model import SRNN
 from model.gru_model import GRU
@@ -49,7 +49,7 @@ basemodels = {
     'parameter_path': None,
     'device': device
     },
-    'TPT' : {
+    'tft' : {
     'model': TFT,
     'parameter_path': None,
     'device': device
@@ -121,8 +121,10 @@ if __name__ == "__main__":
 
     basemodel = basemodels[MODEL_NAME]
     model_param = [256 , 1,  input_size ]
-
-    model = Combine_model(basemodel,basemodels[AE_MODEL_NAME],input_size=input_size ,model_param=model_param, pred_size=PRED_LEN ,sequence_length=SEQ_LEN)
+    if MODEL_NAME == 'tft':
+        model = Combine_transformer_model(basemodel,basemodels[AE_MODEL_NAME],input_size=input_size ,model_param=model_param, pred_size=PRED_LEN ,sequence_length=SEQ_LEN)
+    else:
+        model = Combine_model(basemodel,basemodels[AE_MODEL_NAME],input_size=input_size ,model_param=model_param, pred_size=PRED_LEN ,sequence_length=SEQ_LEN)
     model.to(device)
     optimizer = optim.Adam
 

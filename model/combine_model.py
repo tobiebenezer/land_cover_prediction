@@ -117,3 +117,127 @@ class Combine_model(MBase):
         outputs_flat = outputs.reshape(-1)
         labels_flat = labels.reshape(-1)
         return 1 - MeanAbsoluteError().to(device)(outputs, labels)
+
+
+class Combine_tansformer_model(MBase):
+    def __init__(self, model,encoder,input_size,model_param, pred_size,sequence_length,model_name, in_channels=1, out_channels=1):
+        super(Combine_model, self).__init__()
+
+        self.pred_size = pred_size
+        self.model_name = model_name
+
+        self.ae_model = encoder['model']()
+        self.ae_model.load_state_dict(torch.load(encoder['parameter_path']))
+        self.ae_model.to(encoder['device'])
+
+        model_param[-1] = input_size
+        if self.model_name == 'tft':
+            num_heads = 8
+            dropout = 0.2
+            num_layers = 2
+            model[0] = input_size
+            self.model = model['model'](*model_param, num_heads=num_heads, dropout=dropout, num_layers=num_layers)
+        else:
+            self.model = model['model'](*model_param, input_size = input_size,pred_size=pred_size, sequence_length=sequence_length).to(device)  
+        self.model.to(model['device'])
+        self.model.load_state_dict(torch.load(model['parameter_path']))
+
+        self.fc1 =  nn.Linear(input_shape, hidden_dim)
+        self.fc2 =  nn.Linear(hidden_dim, input_shape)
+
+
+    def forward(self, x):
+        b,s,p,c,h,w = x.shape
+        x = rearrange(x,'b s p c h w -> b p s c h w')
+        x = rearrange(x,'b p s c h w -> (b p s) c h w')
+        with torch.no_grad():
+            x4 = self.ae_model.encoder(x)
+
+        x4 = rearrange(x4, '(b p s) c h w->(b p s) (c h w)', s=s, b=b, p=p)
+        latent_space = self.fc1(x4)
+        latent_space = rearrange(latent_space, '(b p s) h -> (b p) s h', s=s, b=b, p=p)
+
+        if self.model_name == 'tft':
+            latent_space_pred, attns = self.model(latent_space)
+        else:
+            latent_space_pred  = self.model(latent_space)
+
+        latent_space_pred = latent_space_pred[:,:self.pred_size,:]
+
+        latent_space_pred = rearrange(latent_space_pred, '(b p) s h -> (b p s) h', s=s, b=b, p=p)
+        latent_space_pred = self.fc2(latent_space_pred)
+        latent_space_pred = rearrange(latent_space_pred, '(b p s) (c h w) -> (b p s) c h w', s=s, b=b, p=p, c=c, h=h, w=w)
+
+        with torch.no_grad():
+            output = self.ae_model.decoder(latent_space_pred)
+
+        output = rearrange(output,'(b p s) c h w -> b p s c h w',  s=self.pred_size, b=b, p=p)
+        # output = output[:,:, output.shape[2] - self.pred_size:,:,:]
+        return latent_space_pred
+
+    def load_weights(self, encoder_weights, decoder_weights):
+        self.encoder.load_state_dict(torch.load(encoder_weights))
+        self.decoder.load_state_dict(torch.load(decoder_weights))
+
+    def save_weights(self, encoder_weights, decoder_weights):
+        torch.save(self.encoder.state_dict(), encoder_weights)
+        torch.save(self.decoder.state_dict(), decoder_weights)
+
+    def training_step(self, batch, device):
+        X, context, [y, x_dates, y_dates, region_ids] = batch  # Assuming (X, y) format in DataLoader
+        X, y = X.to(device), y.to(device)
+        y = rearrange(y,'b s p c h w -> b p s c h w')
+
+        
+        # with torch.no_grad():
+        #     b,s,p,c,h,w = y.shape
+        #     y = rearrange(y,'b s p c h w -> b p s c h w')
+            # y = rearrange(y,'b p s c h w -> (b p s) c h w')
+            # y = self.ae_model.encoder(y)
+            # y = rearrange(y, '(b p s) c h w->(b p) s (c h w)', s=s, b=b, p=p)
+
+        # Forward pass
+        out = self(X)        
+        # Sum of Squared Errors Loss (SSE)
+        loss = mse_loss(out, y)
+        
+        return loss
+
+    def validation_step(self, batch, device):
+        X, context, [y, x_dates, y_dates, region_ids] = batch
+        X, y = X.to(device), y.to(device)
+        y = rearrange(y,'b s p c h w -> b p s c h w')
+
+        # with torch.no_grad():
+        #     b,s,p,c,h,w = y.shape
+        #     y = rearrange(y,'b s p c h w -> b p s c h w')
+            # y = rearrange(y,'b p s c h w -> (b p s) c h w')
+            # y = self.ae_model.encoder(y)
+            # y = rearrange(y, '(b p s) c h w->(b p) s (c h w)', s=s, b=b, p=p)
+        
+        # Forward pass
+        if self.model_name == 'tft':
+            out = self.model(X, context)
+        else:
+            out = self(X)
+        # Loss and accuracy
+        loss = mse_loss(out, y)
+        acc = self.accuracy(out, y)
+
+        return {'val_loss': loss.detach(), 'val_accuracy': acc}
+
+    def validation_epoch_end(self, outputs):
+        # Collecting batch losses and accuracies
+        batch_losses = [x['val_loss'] for x in outputs]
+        batch_accuracy = [x['val_accuracy'] for x in outputs]
+
+        # Averaging loss and accuracy over the epoch
+        epoch_loss = torch.stack(batch_losses).mean()
+        epoch_acc = torch.stack(batch_accuracy).mean()
+
+        return {'val_loss': epoch_loss.item(), 'val_accuracy': epoch_acc.item()}
+    
+    def accuracy(self, outputs, labels):
+        outputs_flat = outputs.reshape(-1)
+        labels_flat = labels.reshape(-1)
+        return 1 - MeanAbsoluteError().to(device)(outputs, labels)
