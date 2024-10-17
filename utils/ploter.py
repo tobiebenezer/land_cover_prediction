@@ -1,5 +1,6 @@
 from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 palette = ['#ffffff', '#ce7e45', '#df923d', '#f1b555', '#fcd163', '#99b718', '#74a901',
@@ -33,19 +34,48 @@ def plot_reconstructed_img(reconstructed_image):
     plt.show()
 
 def plot_comparism(pred, label):
-    fig, ax = plt.subplots(1,2,figsize=(8,4))
-    scatter1 =ax[0].imshow(pred, cmap=cmap)
+    # Compute the reconstruction error (e.g., absolute difference)
+    reconstruction_error = np.abs(pred - label)
 
+    # Set up the subplots with 1 row and 3 columns
+    fig, ax = plt.subplots(1, 3, figsize=(12, 4))
+
+    # Plot the predicted (reconstructed) cover
+    scatter1 = ax[0].imshow(pred, cmap=cmap)
     ax[0].set_title("Reconstructed Cover")
-
-    scatter2 = ax[1].imshow(label, cmap=cmap)
-
-    ax[1].set_title("Original Cover")
-
     ax[0].axis('off')
+    fig.colorbar(scatter1, ax=ax[0], fraction=0.046, pad=0.04)
+
+    # Plot the original cover
+    scatter2 = ax[1].imshow(label, cmap=cmap)
+    ax[1].set_title("Original Cover")
     ax[1].axis('off')
+    fig.colorbar(scatter2, ax=ax[1], fraction=0.046, pad=0.04)
+
+    # Plot the reconstruction error
+    scatter3 = ax[2].imshow(reconstruction_error, cmap='hot_r')
+    ax[2].set_title("Reconstruction Error")
+    ax[2].axis('off')
+    fig.colorbar(scatter3, ax=ax[2], fraction=0.046, pad=0.04)
+
     plt.tight_layout()
     plt.show()
+
+
+# def plot_comparism(pred, label):
+#     fig, ax = plt.subplots(1,2,figsize=(8,4))
+#     scatter1 =ax[0].imshow(pred, cmap=cmap)
+
+#     ax[0].set_title("Reconstructed Cover")
+
+#     scatter2 = ax[1].imshow(label, cmap=cmap)
+
+#     ax[1].set_title("Original Cover")
+
+#     ax[0].axis('off')
+#     ax[1].axis('off')
+#     plt.tight_layout()
+#     plt.show()
 
 def plot_loss(history):
     val_loss = [train['val_loss'] for train in history]

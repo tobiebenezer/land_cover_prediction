@@ -9,6 +9,8 @@ from model.TemporalTransformer.tft import *
 from model.base import MBase, accuracy
 import torch.nn as nn
 import torch.optim as optim
+from metrics.loss_func import mse_loss, combined_loss
+from torchmetrics import MeanAbsoluteError, MeanSquaredError
 import torch
 import os
 
@@ -36,7 +38,7 @@ class Combine_model(MBase):
         self.model.to(model['device'])
 
     def forward(self, x):
-        b,s,p,_,_,_ = x.shape
+        b,s,p,c,h,w = x.shape
         x = rearrange(x,'b s p c h w -> b p s c h w')
         x = rearrange(x,'b p s c h w -> (b p s) c h w')
         with torch.no_grad():
@@ -44,6 +46,8 @@ class Combine_model(MBase):
 
         x4 = rearrange(x4, '(b p s) c h w->(b p) s (c h w)', s=s, b=b, p=p)
         latent_space_pred = self.model(x4)
+        latent_space_pred = latent_space_pred[:,:self.pred_size,:]
+        
         # latent_space_pred = latent_space_pred.reshape([*x_dim])
 
         # with torch.no_grad():
@@ -51,7 +55,7 @@ class Combine_model(MBase):
 
         # output = rearrange(output,'(b s) c h w  -> b c s h w', b=b )
         # output = output[:,:, output.shape[2] - self.pred_size:,:,:]
-        return latent_space_pred, x4
+        return latent_space_pred
 
     def load_weights(self, encoder_weights, decoder_weights):
         self.encoder.load_state_dict(torch.load(encoder_weights))
@@ -62,31 +66,36 @@ class Combine_model(MBase):
         torch.save(self.decoder.state_dict(), decoder_weights)
 
     def training_step(self, batch, device):
-        X, y = batch  # Assuming (X, y) format in DataLoader
+        X, context, [y, x_dates, y_dates, region_ids] = batch  # Assuming (X, y) format in DataLoader
         X, y = X.to(device), y.to(device)
+        
+        with torch.no_grad():
+            b,s,p,c,h,w = y.shape
+            y = rearrange(y,'b s p c h w -> b p s c h w')
+            y = rearrange(y,'b p s c h w -> (b p s) c h w')
+            y = self.ae_model.encoder(y)
+            y = rearrange(y, '(b p s) c h w->(b p) s (c h w)', s=s, b=b, p=p)
 
-        X = rearrange(X, 'b p c p1 p2 -> (b p) c p1 p2')
         # Forward pass
-        out = self(X)
-        num_patchs =  y.shape[-1] // out.shape[-1]
-        out = rearrange(out, '(b p) c p1 p2 -> b p c p1 p2', b=y.shape[0])
-        out = rearrange(out, 'b (h w) c p1 p2 -> (b c) (h  p1) (w  p2)', h=num_patchs, w=num_patchs )
-
+        out = self(X)        
         # Sum of Squared Errors Loss (SSE)
         loss = mse_loss(out, y)
         
         return loss
 
     def validation_step(self, batch, device):
-        X, y = batch
+        X, context, [y, x_dates, y_dates, region_ids] = batch
         X, y = X.to(device), y.to(device)
-        X = rearrange(X, 'b p c p1 p2 -> (b p) c p1 p2')
+
+        with torch.no_grad():
+            b,s,p,c,h,w = y.shape
+            y = rearrange(y,'b s p c h w -> b p s c h w')
+            y = rearrange(y,'b p s c h w -> (b p s) c h w')
+            y = self.ae_model.encoder(y)
+            y = rearrange(y, '(b p s) c h w->(b p) s (c h w)', s=s, b=b, p=p)
+        
         # Forward pass
         out = self(X)
-        num_patchs =  y.shape[-1] // out.shape[-1]
-        out = rearrange(out, '(b p) c p1 p2 -> b p c p1 p2', b=y.shape[0])
-        out = rearrange(out, 'b (h w) c p1 p2 -> (b c) (h  p1) (w  p2)', h=num_patchs, w=num_patchs )
-
         # Loss and accuracy
         loss = mse_loss(out, y)
         acc = self.accuracy(out, y)
@@ -104,7 +113,7 @@ class Combine_model(MBase):
 
         return {'val_loss': epoch_loss.item(), 'val_accuracy': epoch_acc.item()}
     
-    def accuracy(outputs, labels, device):
+    def accuracy(self, outputs, labels):
         outputs_flat = outputs.reshape(-1)
         labels_flat = labels.reshape(-1)
-        return 1 - MeanAbsoluteError().to(device)(outputs_flat, labels_flat)
+        return 1 - MeanAbsoluteError().to(device)(outputs, labels)

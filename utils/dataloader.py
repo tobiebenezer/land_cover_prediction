@@ -5,6 +5,7 @@ import torch
 
 # Reshape image into patches of size patch_size
 def split_dataset(dataset, val_size=0.15, test_size=0.15):
+    torch.manual_seed(101)
     total_size = len(dataset)
     test_len = int(total_size * test_size)
     val_len = int(total_size * val_size)
@@ -17,10 +18,11 @@ def split_dataset(dataset, val_size=0.15, test_size=0.15):
 def get_dataloaders(csv_file, data_dir, NDVIDataset,batch_size=16, patch_size=16, image_size=512,
              transform=None, val_size=0.15, test_size=0.15, shuffle=True,sequence_len=None,pred_len=None):
     # Initialize the full dataset
-    if sequence_len is not None and pred_len is not None:
+    if sequence_len is None and pred_len is None:
         dataset = NDVIDataset(csv_file=csv_file, data_dir=data_dir, patch_size=patch_size, image_size=image_size, transform=transform)
     else:
-        dataset = NDVIDataset(csv_file=csv_file, data_dir=data_dir, patch_size=patch_size, image_size=image_size, transform=transform, x_sequence_length=sequence_len, y_sequence_length=pred_len)
+        dataset = NDVIDataset(csv_file=csv_file, data_dir=data_dir, patch_size=patch_size, image_size=image_size,
+         transform=transform, x_sequence_length=sequence_len, y_sequence_length=pred_len)
 
 
     # Split into train, validation, and test sets

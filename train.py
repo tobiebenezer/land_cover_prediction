@@ -67,7 +67,7 @@ if __name__ == "__main__":
     parser.add_argument('--DATA_DIR', type=str, help='path to data directory',default='extracted_data')
     parser.add_argument('--NUM_WORKERS', type=int, help='number of workers',default=1)
     parser.add_argument('--IMG_LOG', type=str, help='image log',default='processed_images_log.csv')
-    parser.add_argument('--DATA_DIR', type=str, help='data directory',default='extracted_data')
+    # parser.add_argument('--DATA_DIR', type=str, help='data directory',default='extracted_data')
     parser.add_argument('--PATCH_SIZE', type=int, help='patch size',default=64)
     parser.add_argument('--IMAGE_SIZE', type=int, help='image size',default=512)
     parser.add_argument('--VAL_SIZE', type=float, help='validation size',default=0.15)
@@ -122,7 +122,7 @@ if __name__ == "__main__":
     basemodel = basemodels[MODEL_NAME]
     model_param = [256 , 1,  input_size ]
 
-    model = Combine_model(basemodel,encoder_model,input_size=input_size ,model_param=model_param, pred_size=PRED_LEN ,sequence_length=SEQ_LEN)
+    model = Combine_model(basemodel,basemodels[AE_MODEL_NAME],input_size=input_size ,model_param=model_param, pred_size=PRED_LEN ,sequence_length=SEQ_LEN)
     model.to(device)
     optimizer = optim.Adam
 
@@ -135,5 +135,5 @@ if __name__ == "__main__":
     history,basemodel = fit(EPOCHS, LR, model, train_dataloader,val_dataloader, optimizer,accumulation_steps=ACCUMULATION_STEPS)
     
     torch.save(basemodel.state_dict(), f'{MODEL_NAME}_weights{datetime.now().strftime("%Y-%m-%d")}.pth')
-    basemodel.save_weights(f'{MODEL_NAME}_encoder_weights{datetime.now().strftime("%Y-%m-%d")}.pth', f'{MODEL_NAME}_decoder_weights{datetime.now().strftime("%Y-%m-%d")}.pth')
+    # basemodel.save_weights(f'{MODEL_NAME}_encoder_weights{datetime.now().strftime("%Y-%m-%d")}.pth', f'{MODEL_NAME}_decoder_weights{datetime.now().strftime("%Y-%m-%d")}.pth')
     np.save(f'{MODEL_NAME}_basemodelhistory{datetime.now().strftime("%Y-%m-%d")}.npy', history,allow_pickle=True)
