@@ -89,7 +89,7 @@ class NDVIDataset(Dataset):
 
         x_image_sequence = torch.stack(x_image_sequence)
         y_image_sequence = torch.stack(y_image_sequence) 
-
+        
         x_patches_sequence = rearrange(x_image_sequence, 't (h p1) (w p2) -> t (h w) 1 p1 p2',
                                        p1=self.patch_size, p2=self.patch_size)
         y_patches_sequence = rearrange(y_image_sequence, 't (h p1) (w p2) -> t (h w) 1 p1 p2',
