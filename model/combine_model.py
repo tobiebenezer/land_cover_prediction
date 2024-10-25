@@ -207,7 +207,7 @@ class Combine_tansformer_model(MBase):
         X, context, [y, x_dates, y_dates, region_ids] = batch
         X, y = X.to(device), y.to(device)
         y = rearrange(y,'b s p c h w -> b p s c h w')
-
+        
         # with torch.no_grad():
         #     b,s,p,c,h,w = y.shape
         #     y = rearrange(y,'b s p c h w -> b p s c h w')
