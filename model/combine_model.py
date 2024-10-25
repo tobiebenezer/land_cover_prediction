@@ -39,7 +39,7 @@ class Combine_model(MBase):
     
     def forward(self, x):
         latent_space_pred = self.model(x)
-        latent_space_pred = latent_space_pred[:,:self.pred_size,:]
+        latent_space_pred = latent_space_pred[:,-self.pred_size:,:]
                 
         return latent_space_pred 
 
@@ -163,18 +163,25 @@ class Combine_transformer_model(MBase):
             num_layers = 2
             model[0] = input_size
             self.model = model['model'](*model_param, num_heads=num_heads, dropout=dropout, num_layers=num_layers)
+
+        elif self.model_name == 'patchTST':
+            self.model = model['model'](model_param['config'])
         else:
             self.model = model['model'](*model_param, input_size = input_size,pred_size=pred_size, sequence_length=sequence_length).to(device)  
         self.model.to(model['device'])
 
-    def forward(self, x,context=None):
+    def forward(self, x,y,context=None):
         _, s, _ = x.shape
         if self.model_name == 'tft':
             latent_space_pred, attns = self.model(x,context)
+            latent_space_pred = rearrange(latent_space_pred, '(b s) h -> b s h', s=s)
+            latent_space_pred = latent_space_pred[:,-self.pred_size:,:]
+        elif self.model_name == 'patchTST':
+            latent_space_pred = self.model(x,y):
         else:
             latent_space_pred  = self.model(latent_space)
-        latent_space_pred = rearrange(latent_space_pred, '(b s) h -> b s h', s=s)
-        latent_space_pred = latent_space_pred[:,:self.pred_size,:]
+            latent_space_pred = rearrange(latent_space_pred, '(b s) h -> b s h', s=s)
+            latent_space_pred = latent_space_pred[:,-self.pred_size:,:]
         
         return latent_space_pred
 
@@ -218,13 +225,20 @@ class Combine_transformer_model(MBase):
 
         y = rearrange(y,'b s p c h w -> b p s c h w')
         X, shape_x = self._encode(x)
+        Y, shape_y = self._encode(y)
+        
         # Forward pass
         if self.model_name == 'tft':
             print(self.model_name)
-            out = self(X, context)
+            out = self(X,Y, context)
+
+        elif self.model_name == 'patchTST':
+            out = self(X,Y)
+            patch_loss = out.loss
+            out = out.prediction_outputs
         else:
             out = self(X) 
-        print(out)
+        
         out = self._decode(out,shape_x)        
 
         b ,p ,s ,c ,h, w = y.shape

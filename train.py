@@ -6,6 +6,7 @@ from model.lstm_model import LSTM
 from model.rnn_model import SRNN
 from model.gru_model import GRU
 from model.TemporalTransformer.tft import TemporalFusionTransformer as TFT
+from model.patch_transformer import PatchTST 
 from model.feature_extraction.conv_autoencoder import CAE
 from model.feature_extraction.unet2d import CNNtokenizer
 from model.TemporalTransformer.tokenizer import NDVIViTFT_tokenizer
@@ -51,6 +52,11 @@ basemodels = {
     },
     'tft' : {
     'model': TFT,
+    'parameter_path': None,
+    'device': device
+    },
+    'patchTST':{
+    'model': PatchTST,
     'parameter_path': None,
     'device': device
     }
@@ -125,6 +131,22 @@ if __name__ == "__main__":
     model_param = [HIDDEN_DIM , 1,  HIDDEN_DIM]
     if MODEL_NAME == 'tft':
         model_param = [HIDDEN_DIM , 256 ,  HIDDEN_DIM]
+        model = Combine_transformer_model(basemodel,basemodels[AE_MODEL_NAME],\
+        input_size=input_size,model_param=model_param,model_name=MODEL_NAME, \
+        hidden_dim=HIDDEN_DIM,pred_size=PRED_LEN ,sequence_length=SEQ_LEN)
+
+    elif: MODEL_NAME == 'patchTST':
+        model_param = {
+            'config': {
+                'input_size': HIDDEN_DIM,
+                'context_length': SEQ_LEN,
+                'prediction_length': PRED_LEN,
+                'd_model': 128,
+                'n_heads': 8,
+                'n_layers': 3,
+                'num_input_channels': HIDDEN_DIM,
+            }
+        }
         model = Combine_transformer_model(basemodel,basemodels[AE_MODEL_NAME],\
         input_size=input_size,model_param=model_param,model_name=MODEL_NAME, \
         hidden_dim=HIDDEN_DIM,pred_size=PRED_LEN ,sequence_length=SEQ_LEN)
