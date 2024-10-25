@@ -1,7 +1,7 @@
 from data.ndvi_dataset import NDVIDataset
 import torch
 from torch.utils.data import Dataset, DataLoader
-from model.combine_model import  Combine_model, Combine_tansformer_model
+from model.combine_model import  Combine_model, Combine_transformer_model
 from model.lstm_model import LSTM
 from model.rnn_model import SRNN
 from model.gru_model import GRU
@@ -13,7 +13,7 @@ from model.reautoencoder import ResNet18Autoencoder
 from model.vit_autoencoder import ViTAutoencoder
 from utils.traning import *
 from utils.process_data import get_data
-from utils.dataloader import get_dataloaders
+from utils.dataloader import get_dataloaders, get_dataloaders_2
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -67,7 +67,7 @@ if __name__ == "__main__":
     parser.add_argument('--DATA_DIR', type=str, help='path to data directory',default='extracted_data')
     parser.add_argument('--NUM_WORKERS', type=int, help='number of workers',default=1)
     parser.add_argument('--IMG_LOG', type=str, help='image log',default='processed_images_log.csv')
-    # parser.add_argument('--DATA_DIR', type=str, help='data directory',default='extracted_data')
+    parser.add_argument('--HIDDEN_DIM', type=int, help='hidden dimension',default=512)
     parser.add_argument('--PATCH_SIZE', type=int, help='patch size',default=64)
     parser.add_argument('--IMAGE_SIZE', type=int, help='image size',default=512)
     parser.add_argument('--VAL_SIZE', type=float, help='validation size',default=0.15)
@@ -92,6 +92,7 @@ if __name__ == "__main__":
     DATA_DIR = args.DATA_DIR if args.DATA_DIR else 'extracted_data'
     PATCH_SIZE = args.PATCH_SIZE if args.PATCH_SIZE else 64
     IMAGE_SIZE = args.IMAGE_SIZE if args.IMAGE_SIZE else 512
+    HIDDEN_DIM = args.HIDDEN_DIM if args.HIDDEN_DIM else 512
     VAL_SIZE = args.VAL_SIZE if args.VAL_SIZE else 0.15
     TEST_SIZE = args.TEST_SIZE if args.TEST_SIZE else 0.15
     MODEL_NAME = args.MODEL_NAME if args.MODEL_NAME else 'lstm_base'
@@ -112,25 +113,32 @@ if __name__ == "__main__":
     test_size = TEST_SIZE
 
     #AUTO ENCODER
-    encoder_model = basemodels[AE_MODEL_NAME]['model']()
+    encoder_model = basemodels[AE_MODEL_NAME]['model'](HIDDEN_DIM)
     encoder_model.load_state_dict(torch.load(AE_PARAMETER_PATH))
     encoder_model.to(device)
+    basemodels['CAE']['parameter_path']=AE_PARAMETER_PATH
 
     _, c, ps, ps = encoder_model.encoder(torch.rand(BATCH_SIZE*SEQ_LEN,1,PATCH_SIZE,PATCH_SIZE).to(device)).shape
-    input_size = c*ps*ps
+    input_size = HIDDEN_DIM
 
     basemodel = basemodels[MODEL_NAME]
-    model_param = [256 , 1,  input_size ]
+    model_param = [HIDDEN_DIM , 1,  HIDDEN_DIM]
     if MODEL_NAME == 'tft':
-        model = Combine_transformer_model(basemodel,basemodels[AE_MODEL_NAME],input_size=input_size ,model_param=model_param, pred_size=PRED_LEN ,sequence_length=SEQ_LEN)
+        model_param = [HIDDEN_DIM , 256 ,  HIDDEN_DIM]
+        model = Combine_transformer_model(basemodel,basemodels[AE_MODEL_NAME],\
+        input_size=input_size,model_param=model_param,model_name=MODEL_NAME, \
+        hidden_dim=HIDDEN_DIM,pred_size=PRED_LEN ,sequence_length=SEQ_LEN)
+
     else:
-        model = Combine_model(basemodel,basemodels[AE_MODEL_NAME],input_size=input_size ,model_param=model_param, pred_size=PRED_LEN ,sequence_length=SEQ_LEN)
+        model = Combine_model(basemodel,basemodels[AE_MODEL_NAME],\
+        input_size=input_size ,model_param=model_param, pred_size=PRED_LEN ,\
+        hidden_dim=HIDDEN_DIM,sequence_length=SEQ_LEN)
+
     model.to(device)
     optimizer = optim.Adam
 
-    
     # Create the dataloaders
-    train_dataloader, val_dataloader, test_dataloader = get_dataloaders(csv_file, data_dir, NDVIDataset, 
+    train_dataloader, val_dataloader, test_dataloader = get_dataloaders_2(csv_file, data_dir, NDVIDataset, 
             batch_size=batch_size, patch_size=patch_size, image_size=image_size, val_size=val_size, test_size=test_size,
             sequence_len=PAST_LEN,pred_len=PRED_LEN)
       

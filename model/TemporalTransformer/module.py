@@ -212,7 +212,7 @@ class PositionalEncoder(nn.Module):
         self.d_model = d_model
         self.dropout = nn.Dropout(dropout)
         self.max_len = max_len
-
+        
         # Vectorized positional encoding computation
         position = torch.arange(max_len, dtype=torch.float).unsqueeze(1) 
         div_term = torch.exp(torch.arange(0, d_model, 2, dtype=torch.float) * -(math.log(10000.0) / d_model))

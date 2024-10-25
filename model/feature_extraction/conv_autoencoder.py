@@ -62,13 +62,27 @@ class Decoder(nn.Module):
         return x
 
 class CAE(MBase):
-    def __init__(self):
+    def __init__(self,hidden_dim):
         super(CAE, self).__init__()
         self.encoder = Encoder()
         self.decoder = Decoder()
+        self.latent_dim = hidden_dim
+
+        x = torch.randn(8, 1, 64, 64)
+        x = self.encoder(x)
+        input_shape = x.shape[1] * x.shape[2] * x.shape[3]
+
+        self.fc1 = nn.Linear(input_shape, hidden_dim)
+        self.fc2 = nn.Linear(hidden_dim, input_shape)
+        self.leaky_relu = nn.LeakyReLU(0.2)
 
     def forward(self, x):
         x = self.encoder(x)
+        b,c,h,w = x.shape
+        x = rearrange(x, 'b c h w -> b (c h w)')
+        x = self.leaky_relu(self.fc1(x))
+        x = self.leaky_relu(self.fc2(x))
+        x = rearrange(x, 'b (c h w) -> b c h w', c=c, h=h, w=w)
         x = self.decoder(x)
         return x
 

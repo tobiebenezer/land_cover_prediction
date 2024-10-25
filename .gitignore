@@ -12,3 +12,5 @@ log.txt
 zip_data*
 extracted_data*
 Trained_Models/*
+Autoformer
+Informer2020

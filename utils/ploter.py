@@ -1,6 +1,7 @@
 from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
 
 palette = ['#ffffff', '#ce7e45', '#df923d', '#f1b555', '#fcd163', '#99b718', '#74a901',
@@ -60,6 +61,46 @@ def plot_comparism(pred, label):
 
     plt.tight_layout()
     plt.show()
+
+def all_plot_comparism(pred, label,m_name, output_dir="/plots"):
+    # Ensure pred and label have the same shape
+    assert pred.shape == label.shape, "Predicted and label shapes must match."
+
+    b, s, h, w = pred.shape 
+    os.makedirs(output_dir, exist_ok=True)
+    fig, axes = plt.subplots(b, 3, figsize=(12, 4 * b))
+
+    for i in range(b):
+        for t in range(s):
+            # Compute the reconstruction error for the current batch and time step
+            reconstruction_error = np.abs(pred[i, t] - label[i, t])
+
+            # Plot the predicted (reconstructed) cover
+            scatter1 = axes[i, 0].imshow(pred[i, t], cmap=cmap) 
+            axes[i, 0].set_title(f"Reconstructed Cover (Batch {i}, Time {t})")
+            axes[i, 0].axis('off')
+            fig.colorbar(scatter1, ax=axes[i, 0], fraction=0.046, pad=0.04)
+
+            # Plot the original cover
+            scatter2 = axes[i, 1].imshow(label[i, t], cmap=cmap)
+            axes[i, 1].set_title(f"Original Cover (Batch {i}, Time {t})")
+            axes[i, 1].axis('off')
+            fig.colorbar(scatter2, ax=axes[i, 1], fraction=0.046, pad=0.04)
+
+            # Plot the reconstruction error
+            scatter3 = axes[i, 2].imshow(reconstruction_error, cmap='hot_r')
+            axes[i, 2].set_title(f"Reconstruction Error (Batch {i}, Time {t})")
+            axes[i, 2].axis('off')
+            fig.colorbar(scatter3, ax=axes[i, 2], fraction=0.046, pad=0.04)
+
+    # Save the figure as a PDF
+    pdf_path = os.path.join(output_dir, f"{m_name}_comparison_plots.pdf")
+    plt.savefig(pdf_path, format='pdf', bbox_inches='tight')
+    print(f"Plots saved to {pdf_path}")
+
+    plt.tight_layout()
+    plt.show()
+
 
 
 # def plot_comparism(pred, label):
