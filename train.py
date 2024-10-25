@@ -13,7 +13,7 @@ from model.reautoencoder import ResNet18Autoencoder
 from model.vit_autoencoder import ViTAutoencoder
 from utils.traning import *
 from utils.process_data import get_data
-from utils.dataloader import get_dataloaders
+from utils.dataloader import get_dataloaders, get_dataloaders_2
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -138,7 +138,7 @@ if __name__ == "__main__":
     optimizer = optim.Adam
 
     # Create the dataloaders
-    train_dataloader, val_dataloader, test_dataloader = get_dataloaders(csv_file, data_dir, NDVIDataset, 
+    train_dataloader, val_dataloader, test_dataloader = get_dataloaders_2(csv_file, data_dir, NDVIDataset, 
             batch_size=batch_size, patch_size=patch_size, image_size=image_size, val_size=val_size, test_size=test_size,
             sequence_len=PAST_LEN,pred_len=PRED_LEN)
       

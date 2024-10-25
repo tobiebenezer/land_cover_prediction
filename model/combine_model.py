@@ -96,7 +96,7 @@ class Combine_model(MBase):
         out = rearrange(out,'b p s c h w -> b s p c h w')
         out = rearrange(out,'b s p c h w -> b s (p c) h w')
         out = rearrange(out,'b s (p1 p2) h w -> b s (p1 h) (p2 w)', p1=p1, p2=p1)
-
+        
         # loss = mse_loss(out, y)
         loss = combined_loss(out, y)
         
@@ -167,12 +167,13 @@ class Combine_transformer_model(MBase):
             self.model = model['model'](*model_param, input_size = input_size,pred_size=pred_size, sequence_length=sequence_length).to(device)  
         self.model.to(model['device'])
 
-    def forward(self, x):
+    def forward(self, x,context=None):
+        _, s, _ = x.shape
         if self.model_name == 'tft':
-            latent_space_pred, attns = self.model(latent_space)
+            latent_space_pred, attns = self.model(x,context)
         else:
             latent_space_pred  = self.model(latent_space)
-
+        latent_space_pred = rearrange(latent_space_pred, '(b s) h -> b s h', s=s)
         latent_space_pred = latent_space_pred[:,:self.pred_size,:]
         
         return latent_space_pred
@@ -219,10 +220,11 @@ class Combine_transformer_model(MBase):
         X, shape_x = self._encode(x)
         # Forward pass
         if self.model_name == 'tft':
-            out = self.model(X, context)
+            print(self.model_name)
+            out = self(X, context)
         else:
             out = self(X) 
-
+        print(out)
         out = self._decode(out,shape_x)        
 
         b ,p ,s ,c ,h, w = y.shape

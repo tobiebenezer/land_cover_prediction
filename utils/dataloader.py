@@ -34,3 +34,25 @@ def get_dataloaders(csv_file, data_dir, NDVIDataset,batch_size=16, patch_size=16
     test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
 
     return train_loader, val_loader, test_loader
+
+def get_dataloaders_2(csv_file, data_dir, NDVIDataset,batch_size=16, patch_size=16, image_size=512,
+             transform=None, val_size=0.15, test_size=0.15, shuffle=True,sequence_len=None,pred_len=None):
+    # Initialize the full dataset
+    if sequence_len is None and pred_len is None:
+        train_set = NDVIDataset(csv_file=csv_file, data_dir=data_dir, patch_size=patch_size, image_size=image_size, transform=transform, mode='train')
+        val_set = NDVIDataset(csv_file=csv_file, data_dir=data_dir, patch_size=patch_size, image_size=image_size, transform=transform, mode='val')
+        test_set = NDVIDataset(csv_file=csv_file, data_dir=data_dir, patch_size=patch_size, image_size=image_size, transform=transform, mode='test')
+    else:
+        train_set = NDVIDataset(csv_file=csv_file, data_dir=data_dir, patch_size=patch_size, image_size=image_size,
+         transform=transform, x_sequence_length=sequence_len, y_sequence_length=pred_len,mode='train')
+        val_set = NDVIDataset(csv_file=csv_file, data_dir=data_dir, patch_size=patch_size, image_size=image_size,
+            transform=transform, x_sequence_length=sequence_len, y_sequence_length=pred_len,mode='val')
+        test_set = NDVIDataset(csv_file=csv_file, data_dir=data_dir, patch_size=patch_size, image_size=image_size,
+            transform=transform, x_sequence_length=sequence_len, y_sequence_length=pred_len,mode='test')
+
+    # Create DataLoaders for each split
+    train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=shuffle, num_workers=4, pin_memory=True)
+    val_loader = DataLoader(val_set, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
+    test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
+
+    return train_loader, val_loader, test_loader

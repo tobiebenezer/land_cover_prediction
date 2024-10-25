@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
-import einops
+from einops import rearrange , repeat
 from model.TemporalTransformer.module import *
 
 class TemporalFusionTransformer(nn.Module):
@@ -49,10 +49,10 @@ class TemporalFusionTransformer(nn.Module):
         # static_context_h = rearrange(static_context_h, "(s p) n -> s (p n)" , p=self.sequence_length)
         # static_context_c = rearrange(static_context_c, "(s p) n -> s (p n)" , p=self.sequence_length)
         b, _, _ = x.shape
-        print(x.shape,'x')
-        print(static_context_h.shape,'static_context_h')
+       
         static_context_h = static_context_h[:b,:]
         static_context_c = static_context_c[:b,:]
+        
         output, (state_h, state_c) = self.encoder_lstm(x, (static_context_h.unsqueeze(0).repeat(self.num_layers,1,1),
                              static_context_c.unsqueeze(0).repeat(self.num_layers,1,1)))
 
@@ -71,7 +71,7 @@ class TemporalFusionTransformer(nn.Module):
         month_context = self.month_embedding(month - 1) 
         
         static_encoder = torch.cat([day_context, month_context], dim=-1)
-       
+        
         static_context_e = self.context_grn(static_encoder)
         static_context_h = self.static_context_state_h(static_encoder)
         static_context_c = self.static_context_state_c(static_encoder)
@@ -84,15 +84,17 @@ class TemporalFusionTransformer(nn.Module):
 
     def forward(self, x, context):
         b, s, _ = x.shape
+        print(x.shape,'x')
         x = rearrange(x,'b s h -> (b s) h')
         x = self.input_embedding(x)
         b, _ = x.shape 
         x = rearrange(x, "(b s) h -> b s h", s=(self.sequence_length - self.pred_size))
         future_size = x.shape[1] * 0.75
         future_size = int(future_size)
+        context = repeat(context,"b s h -> (b p) s h", p = x.shape[0]//context.shape[0])
         
-        # print(context.shape)
-        
+        print(context.shape,'context')
+        print(x.shape,'x context')
         static_context_e, static_context_h, static_context_c = self.define_static_covariate_encoders(context)
         past_input =x[:,:future_size, :]
         future_input = x[:,future_size:, :]
@@ -114,15 +116,18 @@ class TemporalFusionTransformer(nn.Module):
         gated_outputs = self.gated_skip_connection(lstm_outputs)
         # gated_outputs = rearrange(gated_outputs, "b s h -> b  s h", s=s)
         
-        # print(gated_outputs.shape,"gated_outputs")
+        print(gated_outputs.shape,"gated_outputs")
         # print(x.shape,"x")
        
         temporal_feature_outputs = self.add_norm(x+ gated_outputs)
+        print(temporal_feature_outputs.shape, 'temporal feature outputs')
 
-        static_context_e_reshaped = rearrange(static_context_e, "(b s) h -> b s h", s=gated_outputs.shape[1] ) #.reshape(batch x sequence, patch, hidden)
+        static_context_e_reshaped = rearrange(static_context_e[:b], "(b s) h -> b s h", s=gated_outputs.shape[1] ) #.reshape(batch x sequence, patch, hidden)
+        print(static_context_e_reshaped.shape, 'static_context e reshape')
         static_enrichment_outputs = self.static_enrichment(torch.cat([temporal_feature_outputs, static_context_e_reshaped], dim=-1))
 
         mask = self.get_mask(static_enrichment_outputs)
+        print(static_enrichment_outputs.shape, "static_enrichment")
         multihead_outputs, multihead_attention = self.multihead_attn(static_enrichment_outputs, static_enrichment_outputs, static_enrichment_outputs, attn_mask=mask)
         multihead_outputs = rearrange(multihead_outputs, "(b s) h -> b s h", s=gated_outputs.shape[1]) #.reshape(batch x sequence, patch, hidden)
         
