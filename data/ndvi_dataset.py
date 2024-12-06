@@ -46,7 +46,7 @@ class NDVIDataset(Dataset):
 
     def get_data(self,df,mode):
         if mode == 'train':
-            df = df[(df['Date'] < self.val_start) ]
+            df = df[ (df['Date'] < self.val_start) ]
             return df
         elif mode == 'val':
             df = df[(df['Date'] >= self.val_start) & (df['Date'] <= self.val_end)]

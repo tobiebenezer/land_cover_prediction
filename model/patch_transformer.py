@@ -1,5 +1,6 @@
 import torch
-form transformers import PatchTSTConfig, PatchTSTForPrediction
+from transformers import PatchTSTConfig, PatchTSTForPrediction
+from einops import rearrange
 
 
 class PatchTST(torch.nn.Module):
@@ -8,5 +9,12 @@ class PatchTST(torch.nn.Module):
         self.config = PatchTSTConfig(**config)
         self.model = PatchTSTForPrediction(self.config)
 
-    def forward(self, x):
-        return self.model(x)
+    def forward(self, x,y=None):
+        
+        if not( y is None):
+            y = rearrange(y, 's b h -> b s h')
+            return self.model(
+                past_values=x,
+                future_values=y)
+        else:
+            return self.model(past_values=x)

@@ -135,11 +135,11 @@ if __name__ == "__main__":
         input_size=input_size,model_param=model_param,model_name=MODEL_NAME, \
         hidden_dim=HIDDEN_DIM,pred_size=PRED_LEN ,sequence_length=SEQ_LEN)
 
-    elif: MODEL_NAME == 'patchTST':
+    elif MODEL_NAME == 'patchTST':
         model_param = {
             'config': {
                 'input_size': HIDDEN_DIM,
-                'context_length': SEQ_LEN,
+                'context_length': 10,
                 'prediction_length': PRED_LEN,
                 'd_model': 128,
                 'n_heads': 8,
@@ -163,8 +163,13 @@ if __name__ == "__main__":
     train_dataloader, val_dataloader, test_dataloader = get_dataloaders_2(csv_file, data_dir, NDVIDataset, 
             batch_size=batch_size, patch_size=patch_size, image_size=image_size, val_size=val_size, test_size=test_size,
             sequence_len=PAST_LEN,pred_len=PRED_LEN)
-      
-    history,basemodel = fit(EPOCHS, LR, model, train_dataloader,val_dataloader, optimizer,accumulation_steps=ACCUMULATION_STEPS)
+    
+    #Early stopper
+    early_stopping = EarlyStopping(tolerance=4, min_delta=5)
+    
+    history,basemodel = fit(EPOCHS, LR, model, train_dataloader,val_dataloader,\
+                                 optimizer,accumulation_steps=ACCUMULATION_STEPS, \
+                                 early_stopping=early_stopping)
     
     torch.save(basemodel.state_dict(), f'{MODEL_NAME}_weights{datetime.now().strftime("%Y-%m-%d")}.pth')
     # basemodel.save_weights(f'{MODEL_NAME}_encoder_weights{datetime.now().strftime("%Y-%m-%d")}.pth', f'{MODEL_NAME}_decoder_weights{datetime.now().strftime("%Y-%m-%d")}.pth')

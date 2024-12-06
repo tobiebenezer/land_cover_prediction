@@ -84,7 +84,7 @@ class TemporalFusionTransformer(nn.Module):
 
     def forward(self, x, context):
         b, s, _ = x.shape
-        print(x.shape,'x')
+        # print(x.shape,'x')
         x = rearrange(x,'b s h -> (b s) h')
         x = self.input_embedding(x)
         b, _ = x.shape 
@@ -93,8 +93,8 @@ class TemporalFusionTransformer(nn.Module):
         future_size = int(future_size)
         context = repeat(context,"b s h -> (b p) s h", p = x.shape[0]//context.shape[0])
         
-        print(context.shape,'context')
-        print(x.shape,'x context')
+        # print(context.shape,'context')
+        # print(x.shape,'x context')
         static_context_e, static_context_h, static_context_c = self.define_static_covariate_encoders(context)
         past_input =x[:,:future_size, :]
         future_input = x[:,future_size:, :]
@@ -116,18 +116,18 @@ class TemporalFusionTransformer(nn.Module):
         gated_outputs = self.gated_skip_connection(lstm_outputs)
         # gated_outputs = rearrange(gated_outputs, "b s h -> b  s h", s=s)
         
-        print(gated_outputs.shape,"gated_outputs")
+        # print(gated_outputs.shape,"gated_outputs")
         # print(x.shape,"x")
        
         temporal_feature_outputs = self.add_norm(x+ gated_outputs)
-        print(temporal_feature_outputs.shape, 'temporal feature outputs')
+        # print(temporal_feature_outputs.shape, 'temporal feature outputs')
 
         static_context_e_reshaped = rearrange(static_context_e[:b], "(b s) h -> b s h", s=gated_outputs.shape[1] ) #.reshape(batch x sequence, patch, hidden)
-        print(static_context_e_reshaped.shape, 'static_context e reshape')
+        # print(static_context_e_reshaped.shape, 'static_context e reshape')
         static_enrichment_outputs = self.static_enrichment(torch.cat([temporal_feature_outputs, static_context_e_reshaped], dim=-1))
 
         mask = self.get_mask(static_enrichment_outputs)
-        print(static_enrichment_outputs.shape, "static_enrichment")
+        # print(static_enrichment_outputs.shape, "static_enrichment")
         multihead_outputs, multihead_attention = self.multihead_attn(static_enrichment_outputs, static_enrichment_outputs, static_enrichment_outputs, attn_mask=mask)
         multihead_outputs = rearrange(multihead_outputs, "(b s) h -> b s h", s=gated_outputs.shape[1]) #.reshape(batch x sequence, patch, hidden)
         

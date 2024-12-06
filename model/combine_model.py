@@ -33,12 +33,23 @@ class Combine_model(MBase):
         self.ae_model.load_state_dict(torch.load(encoder['parameter_path']))
         self.ae_model.to(encoder['device'])
 
+        self.ae_model.eval()
+        for param in self.ae_model.parameters():
+            param.requires_grad = False
+
         model_param[-1] = input_size
         self.model = model['model'](*model_param, input_size = input_size,pred_size=pred_size, sequence_length=sequence_length).to(device)  
         self.model.to(model['device'])
+        # self.model_output = nn.Conv1d(hidden_dim,hidden_dim,3,1)
+        # self.adapt_output = nn.AdaptiveMaxPool1d(pred_size)
     
     def forward(self, x):
         latent_space_pred = self.model(x)
+        # latent_space_pred = rearrange(latent_space_pred,'b s h -> b h s')
+        # latent_space_pred = self.model_output(latent_space_pred)
+        # latent_space_pred = self.adapt_output(latent_space_pred)
+        # latent_space_pred = rearrange(latent_space_pred,'b h s -> b s h')
+
         latent_space_pred = latent_space_pred[:,-self.pred_size:,:]
                 
         return latent_space_pred 
@@ -83,8 +94,13 @@ class Combine_model(MBase):
 
         y = rearrange(y,'b s p c h w -> b p s c h w')
         X, shape_x = self._encode(x)
+        Y, shape_y = self._encode(y)
         # Forward pass
-        out = self(X)  
+        out = self(X)
+        out1 = rearrange(out,'b s h -> (b s) h')
+        Y = rearrange(Y,'b s h -> (b s) h')
+        # patch_loss = mse_loss(out1, Y) 
+
         out = self._decode(out,shape_x)
 
         b ,p ,s ,c ,h, w = y.shape
@@ -100,7 +116,7 @@ class Combine_model(MBase):
         # loss = mse_loss(out, y)
         loss = combined_loss(out, y)
         
-        return loss
+        return loss 
 
     def validation_step(self, batch, device):
         X, context, [y, x_dates, y_dates, region_ids] = batch  # Assuming (X, y) format in DataLoader
@@ -156,6 +172,13 @@ class Combine_transformer_model(MBase):
         self.ae_model.load_state_dict(torch.load(encoder['parameter_path']))
         self.ae_model.to(encoder['device'])
 
+        self.ae_model.eval()
+        for param in self.ae_model.parameters():
+            param.requires_grad = False
+
+        # self.model_output = nn.Conv1d(hidden_dim,hidden_dim,3,1)
+        # self.adapt_output = nn.AdaptiveMaxPool1d(pred_size)
+
         model_param[-1] = input_size
         if self.model_name == 'tft':
             num_heads = 8
@@ -176,12 +199,20 @@ class Combine_transformer_model(MBase):
             latent_space_pred, attns = self.model(x,context)
             latent_space_pred = rearrange(latent_space_pred, '(b s) h -> b s h', s=s)
             latent_space_pred = latent_space_pred[:,-self.pred_size:,:]
+            
         elif self.model_name == 'patchTST':
-            latent_space_pred = self.model(x,y):
+            latent_space_pred = self.model(x,y)
+
         else:
-            latent_space_pred  = self.model(latent_space)
+            latent_space_pred  = self.model(x)
             latent_space_pred = rearrange(latent_space_pred, '(b s) h -> b s h', s=s)
-            latent_space_pred = latent_space_pred[:,-self.pred_size:,:]
+        
+        # latent_space_pred = rearrange(latent_space_pred,'b s h -> b h s')
+        # latent_space_pred = self.model_output(latent_space_pred)
+        # latent_space_pred = self.adapt_output(latent_space_pred)
+        # latent_space_pred = rearrange(latent_space_pred,'b h s -> b s h')
+
+        # latent_space_pred = latent_space_pred[:,-self.pred_size:,:]
         
         return latent_space_pred
 
@@ -229,13 +260,16 @@ class Combine_transformer_model(MBase):
         
         # Forward pass
         if self.model_name == 'tft':
-            print(self.model_name)
             out = self(X,Y, context)
+            out1 = rearrange(out,'b s h -> (b s) h')
+            # Y = rearrange(Y,'b s h -> (b s) h')
+            # patch_loss = mse_loss(out1, Y)
 
         elif self.model_name == 'patchTST':
             out = self(X,Y)
-            patch_loss = out.loss
+            # patch_loss = out.loss
             out = out.prediction_outputs
+            
         else:
             out = self(X) 
         
@@ -253,8 +287,13 @@ class Combine_transformer_model(MBase):
 
         # loss = mse_loss(out, y)
         loss = combined_loss(out, y)
+        # if self.model_name == 'patchTST':
+        #     return (1-0.35)*loss + 0.35 * patch_loss
+
+        # else:
+        #     return loss
+        return loss 
         
-        return loss
 
     def validation_step(self, batch, device):
         X, context, [y, x_dates, y_dates, region_ids] = batch  # Assuming (X, y) format in DataLoader
@@ -262,11 +301,22 @@ class Combine_transformer_model(MBase):
 
         y = rearrange(y,'b s p c h w -> b p s c h w')
         X, shape_x = self._encode(x)
+        Y, shape_y = self._encode(y)
+        
         # Forward pass
         if self.model_name == 'tft':
-            out = self.model(X, context)
+            out = self(X,Y, context)
+            out1 = rearrange(out,'b s h -> (b s) h')
+            Y = rearrange(Y,'b s h -> (b s) h')
+            patch_loss = mse_loss(out1, Y)
+
+        elif self.model_name == 'patchTST':
+            out = self(X,Y)
+            patch_loss = out.loss
+            out = out.prediction_outputs
+            
         else:
-            out = self(X)
+            out = self(X) 
 
         out = self._decode(out,shape_x)        
 

@@ -19,6 +19,20 @@ print(f"Using {device} device")
 # Learning rate scheduler
 scheduler_training = optim.lr_scheduler.ReduceLROnPlateau
 
+class EarlyStopping:
+    def __init__(self, tolerance=5, min_delta=0):
+
+        self.tolerance = tolerance
+        self.min_delta = min_delta
+        self.counter = 0
+        self.early_stop = False
+
+    def __call__(self, train_loss, validation_loss):
+        if (validation_loss - train_loss) > self.min_delta:
+            self.counter +=1
+            if self.counter >= self.tolerance:  
+                self.early_stop = True
+
 
 @torch.no_grad()
 def evaluate(model, val_loader, device):
@@ -27,7 +41,7 @@ def evaluate(model, val_loader, device):
     return model.validation_epoch_end(outputs)
 
 
-def fit(epochs, lr, model, train_loader, val_loader=None, opt_func=torch.optim.SGD, scheduler=None, model_name='train', accumulation_steps=1):
+def fit(epochs, lr, model, train_loader, val_loader=None, opt_func=torch.optim.SGD, scheduler=None, model_name='train', accumulation_steps=1,early_stopping=None):
     since = time.time()
     
     # Create a temporary directory to save training checkpoints
@@ -74,6 +88,13 @@ def fit(epochs, lr, model, train_loader, val_loader=None, opt_func=torch.optim.S
             if result['val_loss'] < best_loss:
                 best_loss = result['val_loss']
                 torch.save(model.state_dict(), best_model_params_path)
+            
+            if early_stopping is not None:
+                # early stopping
+                early_stopping(result['train_loss'], result['val_loss'])
+                if early_stopping.early_stop:
+                    print("We are at epoch:", epoch)
+                    break
 
         time_elapsed = time.time() - since
         print(f"Training complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s")
